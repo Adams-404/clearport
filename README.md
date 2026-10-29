@@ -30,7 +30,7 @@ If the model takes a while to load, the status dot can be red at first. Tap it t
 - **Settings** — server URL, model, optional API key, system prompt, temperature, theme
 - **Light / dark / system** Material 3 themes with a small hand-rolled markdown renderer (code blocks, bold, italic, inline code)
 - **Copy** any reply; errors render inline with a retry action
-- No `.env` files, no secrets, no third-party services
+- No accounts, no telemetry, no third-party services
 
 ## Requirements
 
