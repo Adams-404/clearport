@@ -1,10 +1,26 @@
 # Clearport
 
+![Build APK](https://github.com/Adams-404/clearport/actions/workflows/build-apk.yml/badge.svg)
+
 A clean, minimal Flutter chat client for a local AI server. Streaming replies, saved conversations, and a live model status indicator — no cloud, no accounts, no telemetry.
 
 Built Android-first. The UI is platform-agnostic, so desktop is a `flutter create` away.
 
 > **Scope:** Clearport is the frontend only. It does not bundle or run a model — you point it at an OpenAI-compatible server (Ollama, LM Studio, llama.cpp, vLLM, LocalAI…).
+
+## Everything on your phone (Termux)
+
+If the model runs in **Termux on the same phone**, you need no computer, no `adb`, and no LAN IP. `127.0.0.1` is exactly right.
+
+1. **Start your model server in Termux** and keep it on port 8080. Clearport needs an OpenAI-compatible endpoint at `http://127.0.0.1:8080/v1` — for example llama.cpp's `llama-server` (default host/port already match) or any other server you already run. If your server listens on `0.0.0.0:8080`, loopback still works.
+
+2. **Install the app from Releases:** open [Releases](https://github.com/Adams-404/clearport/releases/latest) on the phone, download `clearport.apk`, tap it, and allow **Install unknown apps** for the browser or file manager.
+
+3. **Open Clearport → Settings.** Keep the URL `http://127.0.0.1:8080/v1`, set **Model** if your server requires one (llama.cpp/Ollama usually do), and tap **Test** until it says **Connected**.
+
+4. **Keep Termux alive.** Run `termux-wake-lock` before launching the server, and set Termux's battery usage to **Unrestricted** (Android Settings → Apps → Termux → Battery). Some OEMs (Samsung, Xiaomi, OnePlus) also kill background processes — disable their "phantom process killer" or battery saver for Termux.
+
+If the model takes a while to load, the status dot can be red at first. Tap it to re-check, or just send a message once the server is ready.
 
 ## Features
 
@@ -22,7 +38,7 @@ Built Android-first. The UI is platform-agnostic, so desktop is a `flutter creat
 | --- | --- |
 | Flutter | 3.44+ (built and tested on 3.44.8) |
 | Dart | 3.12+ |
-| Android SDK | API 21+ device, SDK 36 to build |
+| Android SDK | Android 7.0+ device, SDK 36 to build |
 | Local AI server | Any OpenAI-compatible API on port 8080 |
 
 ## Quick start
@@ -86,12 +102,13 @@ The parser also accepts Ollama's native `{"message":{"content":"…"}}` / `{"res
 
 > **Ollama:** its OpenAI endpoint requires a model name, so set **Model** to a tag you have pulled (for example `llama3.2`). Leaving it empty works on servers that pick a default.
 
-### ⚠️ `127.0.0.1` on a phone is the phone
+### ⚠️ `127.0.0.1` depends on where the server runs
 
-This is the most common setup mistake:
+`127.0.0.1` always means "this device". If the model runs in Termux on the same phone, that is exactly what you want. It breaks only when the server is on a **different** machine:
 
 | Where the app runs | URL to use |
 | --- | --- |
+| **Model in Termux, same phone** | `http://127.0.0.1:8080/v1` — correct as-is |
 | Android **emulator** | `http://10.0.2.2:8080/v1` |
 | Physical phone over **USB** | `http://127.0.0.1:8080/v1` **after** `adb reverse tcp:8080 tcp:8080` |
 | Physical phone over **Wi‑Fi** | `http://<your-computer-LAN-IP>:8080/v1`, e.g. `http://192.168.1.20:8080/v1` |
@@ -107,7 +124,13 @@ adb reverse tcp:8080 tcp:8080
 
 ## Install on your phone
 
-### Option A — run from your computer over USB (fastest)
+### Option A — ready-made APK (no computer)
+
+Grab the latest build from **[Releases](https://github.com/Adams-404/clearport/releases/latest)**, download `clearport.apk` on the phone, tap it, and allow installing from that source.
+
+The APK is signed with a debug key, which is fine for personal use. Rebuild it yourself for a proper release signature.
+
+### Option B — run from your computer over USB (fastest when hacking on it)
 
 1. On the phone: **Settings → About phone**, tap **Build number** seven times to unlock Developer options.
 2. In **Developer options**, enable **USB debugging**.
@@ -133,7 +156,7 @@ adb reverse tcp:8080 tcp:8080
 
    Keep the app's URL at `http://127.0.0.1:8080/v1`.
 
-### Option B — build an APK and install it
+### Option C — build an APK and install it
 
 ```bash
 flutter build apk --release
@@ -144,7 +167,7 @@ Or copy `build/app/outputs/flutter-apk/app-release.apk` to the phone (USB, Drive
 
 The release build is signed with the debug keystore, which is fine for personal sideloading. Configure a proper keystore before publishing to Play.
 
-### Option C — Android Studio
+### Option D — Android Studio
 
 Open the project folder, pick your device in the toolbar, and press **Run**.
 
@@ -209,6 +232,14 @@ flutter run -d linux   # or macos / windows
 ```
 
 Then use `http://127.0.0.1:8080/v1` directly.
+
+## Automatic builds
+
+`.github/workflows/build-apk.yml` builds a release APK on every push to `main` and uploads it as the **clearport-apk** artifact (Actions → run → Artifacts). Pushing a `v*` tag also attaches `clearport.apk` to a GitHub Release, which is how the phone-only install works.
+
+```bash
+git tag v1.0.0 && git push origin v1.0.0
+```
 
 ## License
 
