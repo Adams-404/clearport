@@ -36,6 +36,11 @@ flutter run
 
 With no server running, the app still opens and shows **Offline** — that's expected.
 
+```bash
+flutter test      # parser, URL normalization, title helpers
+flutter analyze
+```
+
 ## Connect it to your server
 
 Open **Settings → Server URL** and enter an OpenAI-compatible base URL. The default is:
