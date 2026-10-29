@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../services/chat_api.dart';
@@ -36,7 +38,9 @@ class EmptyState extends StatelessWidget {
         return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight - 56),
+            constraints: BoxConstraints(
+              minHeight: math.max(0, constraints.maxHeight - 56),
+            ),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 360),

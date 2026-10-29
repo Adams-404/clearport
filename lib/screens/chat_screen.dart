@@ -27,6 +27,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final FocusNode _inputFocus = FocusNode();
 
   AppState? _state;
+  String? _lastConversationId;
   bool _stickToBottom = true;
 
   @override
@@ -35,12 +36,14 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_state != null) return;
     final state = AppScope.of(context);
     _state = state;
+    _lastConversationId = state.activeId;
     state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (state.status.health == ServerHealth.unknown) {
         state.refreshStatus();
       }
+      _scrollToBottom(animate: false);
     });
   }
 
@@ -62,8 +65,16 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _onStateChanged() {
-    if (_state?.isStreaming ?? false) {
-      if (_stickToBottom) _scrollToBottom(animate: false);
+    final state = _state;
+    if (state == null) return;
+    if (state.activeId != _lastConversationId) {
+      _lastConversationId = state.activeId;
+      _stickToBottom = true;
+      _scrollToBottom(animate: false);
+      return;
+    }
+    if (state.isStreaming && _stickToBottom) {
+      _scrollToBottom(animate: false);
     }
   }
 
@@ -113,10 +124,12 @@ class _ChatScreenState extends State<ChatScreen> {
     _inputFocus.requestFocus();
   }
 
-  void _openSettings() {
-    Navigator.of(
+  Future<void> _openSettings() async {
+    await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
+    if (!mounted) return;
+    _state?.refreshStatus();
   }
 
   @override

@@ -20,8 +20,8 @@ Built Android-first. The UI is platform-agnostic, so desktop is a `flutter creat
 
 | Tool | Version |
 | --- | --- |
-| Flutter | 3.27+ (built and tested on 3.44.8) |
-| Dart | 3.6+ |
+| Flutter | 3.44+ (built and tested on 3.44.8) |
+| Dart | 3.12+ |
 | Android SDK | API 21+ device, SDK 36 to build |
 | Local AI server | Any OpenAI-compatible API on port 8080 |
 
@@ -83,6 +83,8 @@ The parser also accepts Ollama's native `{"message":{"content":"…"}}` / `{"res
 - **LM Studio** — enable the local server, use `http://127.0.0.1:1234/v1`
 - **llama.cpp** (`llama-server`) — use `http://127.0.0.1:8080/v1`
 - **vLLM**, **LocalAI**, **text-generation-webui** — use their OpenAI-compatible base URL
+
+> **Ollama:** its OpenAI endpoint requires a model name, so set **Model** to a tag you have pulled (for example `llama3.2`). Leaving it empty works on servers that pick a default.
 
 ### ⚠️ `127.0.0.1` on a phone is the phone
 
