@@ -212,7 +212,7 @@ No state-management package: `ChangeNotifier` + `ListenableBuilder` and one `Inh
 
 | Symptom | Fix |
 | --- | --- |
-| **Offline / connection refused** | Is the server running? Does `curl http://127.0.0.1:8080/v1/models` work on the computer? |
+| **Offline / connection refused** | Is the server running? Does `curl http://127.0.0.1:8080/v1/models` work in Termux? Make sure it listens on IPv4 `127.0.0.1`, not only `::1` |
 | Emulator can't connect | Use `10.0.2.2`, not `127.0.0.1` |
 | Phone can't connect on Wi‑Fi | Use the computer's LAN IP, bind the server to `0.0.0.0`, check the firewall |
 | Phone over USB can't connect | Run `adb reverse tcp:8080 tcp:8080` |
