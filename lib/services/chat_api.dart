@@ -187,7 +187,13 @@ class ChatApi {
 
   String _safeEndpoint(Uri uri) {
     // Never display URL credentials, query parameters or fragments.
-    return uri.replace(userInfo: '', query: '', fragment: '').toString();
+    return Uri(
+      scheme: uri.scheme,
+      userInfo: '',
+      host: uri.host,
+      port: uri.hasPort ? uri.port : null,
+      path: uri.path,
+    ).toString();
   }
 
   /// Streams a completion, calling [onDelta] with each text fragment.
