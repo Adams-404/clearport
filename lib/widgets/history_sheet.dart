@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 
+import '../utils/conversation_search.dart';
+
 import '../models/conversation.dart';
 import '../state/app_state.dart';
 import '../services/conversation_transfer.dart';
@@ -10,8 +12,18 @@ import '../theme.dart';
 import '../utils/format.dart';
 import 'app_scope.dart';
 
-class HistorySheet extends StatelessWidget {
+class HistorySheet extends StatefulWidget {
   const HistorySheet({super.key});
+
+  @override
+  State<HistorySheet> createState() => _HistorySheetState();
+}
+
+class _HistorySheetState extends State<HistorySheet> {
+  final TextEditingController _search = TextEditingController();
+
+  @override
+  void dispose() { _search.dispose(); super.dispose(); }
 
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
@@ -75,15 +87,31 @@ class HistorySheet extends StatelessWidget {
               ],
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: TextField(
+              controller: _search,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: 'Search chats and messages',
+                prefixIcon: const Icon(Icons.search_rounded, size: 19),
+                suffixIcon: _search.text.isEmpty ? null : IconButton(tooltip: 'Clear search', onPressed: () { _search.clear(); setState(() {}); }, icon: const Icon(Icons.close_rounded, size: 18)),
+                isDense: true, filled: true, fillColor: palette.bg,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: palette.border)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: palette.border)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: palette.accent)),
+              ),
+            ),
+          ),
           Expanded(
             child: ListenableBuilder(
               listenable: state,
               builder: (context, _) {
-                final conversations = state.history;
+                final conversations = searchConversations(state.history, _search.text);
                 if (conversations.isEmpty) {
                   return Center(
                     child: Text(
-                      'No conversations yet.',
+                      _search.text.trim().isEmpty ? 'No conversations yet.' : 'No matching conversations.',
                       style: TextStyle(fontSize: 13, color: palette.muted),
                     ),
                   );
@@ -103,6 +131,7 @@ class HistorySheet extends StatelessWidget {
                       onDelete: () =>
                           _confirmDelete(context, state, conversation),
                       onExport: () => _export(context, [conversation]),
+                      onRename: () => _rename(context, state, conversation),
                     );
                   },
                 );
@@ -190,8 +219,46 @@ class HistorySheet extends StatelessWidget {
         ],
       ),
     );
-    if (confirmed == true) state.removeConversation(conversation.id);
+    if (confirmed == true) {
+      final removed = state.removeConversation(conversation.id);
+      if (removed != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('Chat deleted.'), action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () => state.restoreConversation(removed),
+          )),
+        );
+      }
+    }
   }
+
+  Future<void> _rename(BuildContext context, AppState state, Conversation conversation) async {
+    final controller = TextEditingController(text: conversation.title);
+    final title = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: dialogContext.palette.surface,
+        title: const Text('Rename chat'),
+        content: TextField(controller: controller, autofocus: true, maxLength: 80,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(hintText: 'Chat title'),
+          onSubmitted: (value) => Navigator.of(dialogContext).pop(value)),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.of(dialogContext).pop(controller.text), child: const Text('Save')),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (title != null && context.mounted) {
+      if (title.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('A chat title cannot be empty.')));
+      } else {
+        state.renameConversation(conversation.id, title);
+      }
+    }
+  }
+}
 }
 
 class _ConversationTile extends StatelessWidget {
@@ -201,6 +268,7 @@ class _ConversationTile extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
     required this.onExport,
+    required this.onRename,
   });
 
   final Conversation conversation;
@@ -208,6 +276,7 @@ class _ConversationTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onExport;
+  final VoidCallback onRename;
 
   @override
   Widget build(BuildContext context) {
@@ -249,6 +318,7 @@ class _ConversationTile extends StatelessWidget {
                     ],
                   ),
                 ),
+                IconButton(onPressed: onRename, tooltip: 'Rename chat', visualDensity: VisualDensity.compact, icon: Icon(Icons.edit_outlined, size: 17, color: palette.muted)),
                 IconButton(onPressed: onExport, tooltip: 'Export chat', visualDensity: VisualDensity.compact, icon: Icon(Icons.ios_share_rounded, size: 17, color: palette.muted)),
                 IconButton(
                   onPressed: onDelete,
