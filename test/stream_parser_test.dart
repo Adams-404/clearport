@@ -19,9 +19,9 @@ void main() {
     test('stops at [DONE]', () {
       final parser = StreamParser();
       final deltas = parser.add(
-        'data: {"choices":[{"delta":{"content":"Hi"}}]}\\n\\n'
-        'data: [DONE]\\n\\n'
-        'data: {"choices":[{"delta":{"content":"ignored"}}]}\\n\\n',
+        'data: {"choices":[{"delta":{"content":"Hi"}}]}\n\n'
+        'data: [DONE]\n\n'
+        'data: {"choices":[{"delta":{"content":"ignored"}}]}\n\n',
       );
       expect(deltas, ['Hi']);
       expect(parser.done, isTrue);
