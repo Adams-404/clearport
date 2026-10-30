@@ -4,18 +4,23 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   build-android:
-    name: Build Android APK
+    name: Build and publish Android APK
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -27,22 +32,31 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Generate Android launcher icons
+        run: dart run flutter_launcher_icons
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
       - name: Build release APK
         run: flutter build apk --release
+
+      - name: Verify APK signature and package metadata
+        run: |
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
+          AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n 1)
+          test -n "$APKSIGNER"
+          test -n "$AAPT"
+          "$APKSIGNER" verify --verbose --print-certs build/app/outputs/flutter-apk/app-release.apk
+          "$AAPT" dump badging build/app/outputs/flutter-apk/app-release.apk | head -n 8
 
       - name: Rename APK
         run: cp build/app/outputs/flutter-apk/app-release.apk clearport-android-universal.apk
 
-      - name: Upload APK to workflow
-        uses: actions/upload-artifact@v4
-        with:
-          name: clearport-android-apk
-          path: clearport-android-universal.apk
-          if-no-files-found: error
-          retention-days: 30
-
       - name: Publish GitHub release
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
