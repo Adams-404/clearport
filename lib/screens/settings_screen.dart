@@ -19,11 +19,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _model = TextEditingController();
   final TextEditingController _apiKey = TextEditingController();
   final TextEditingController _systemPrompt = TextEditingController();
+  final TextEditingController _maxTokens = TextEditingController();
 
   AppState? _state;
   bool _ready = false;
   bool _obscureKey = true;
   double _temperature = 0.7;
+  double _topP = 1.0;
+  bool _useTopP = false;
 
   @override
   void didChangeDependencies() {
@@ -36,6 +39,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _apiKey.text = settings.apiKey;
     _systemPrompt.text = settings.systemPrompt;
     _temperature = settings.temperature;
+    _maxTokens.text = settings.maxOutputTokens?.toString() ?? '';
+    _topP = settings.topP ?? 1.0;
+    _useTopP = settings.topP != null;
     _ready = true;
   }
 
@@ -45,6 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _model.dispose();
     _apiKey.dispose();
     _systemPrompt.dispose();
+    _maxTokens.dispose();
     super.dispose();
   }
 
@@ -54,6 +61,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     String? apiKey,
     String? systemPrompt,
     double? temperature,
+    int? maxOutputTokens,
+    bool clearMaxOutputTokens = false,
+    double? topP,
+    bool clearTopP = false,
     ThemeMode? themeMode,
   }) {
     final state = _state;
@@ -65,6 +76,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         apiKey: apiKey,
         systemPrompt: systemPrompt,
         temperature: temperature,
+        maxOutputTokens: maxOutputTokens,
+        clearMaxOutputTokens: clearMaxOutputTokens,
+        topP: topP,
+        clearTopP: clearTopP,
         themeMode: themeMode,
       ),
     );
@@ -305,6 +320,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _apply(temperature: value);
                   },
                 ),
+                const SizedBox(height: 12),
+                _Field(
+                  label: 'Maximum output tokens',
+                  controller: _maxTokens,
+                  hint: 'Server default',
+                  helper: 'Optional. Leave empty to use the server default (1–32768).',
+                  keyboardType: TextInputType.number,
+                  autocorrect: false,
+                  onChanged: (value) {
+                    final parsed = int.tryParse(value.trim());
+                    if (value.trim().isEmpty) {
+                      _apply(clearMaxOutputTokens: true);
+                    } else if (parsed != null && parsed >= 1 && parsed <= 32768) {
+                      _apply(maxOutputTokens: parsed);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    'Top-p sampling',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Optional nucleus sampling (0.00–1.00).',
+                    style: TextStyle(fontSize: 11, color: palette.muted),
+                  ),
+                  value: _useTopP,
+                  onChanged: (enabled) {
+                    setState(() => _useTopP = enabled);
+                    if (enabled) {
+                      _apply(topP: _topP);
+                    } else {
+                      _apply(clearTopP: true);
+                    }
+                  },
+                ),
+                if (_useTopP) ...[
+                  Row(
+                    children: [
+                      Text('Top-p', style: TextStyle(fontSize: 12, color: palette.muted)),
+                      const Spacer(),
+                      Text(_topP.toStringAsFixed(2), style: TextStyle(fontSize: 12, fontFamily: 'monospace', color: palette.muted)),
+                    ],
+                  ),
+                  Slider(
+                    value: _topP,
+                    min: 0,
+                    max: 1,
+                    divisions: 100,
+                    label: _topP.toStringAsFixed(2),
+                    onChanged: (value) {
+                      setState(() => _topP = value);
+                      _apply(topP: value);
+                    },
+                  ),
+                ],
               ],
             ),
           ),

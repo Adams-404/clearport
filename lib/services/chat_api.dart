@@ -219,6 +219,8 @@ class ChatApi {
       final payload = <String, dynamic>{
         'stream': true,
         'temperature': settings.temperature,
+        if (settings.maxOutputTokens != null && settings.maxOutputTokens! >= 1 && settings.maxOutputTokens! <= 32768) 'max_tokens': settings.maxOutputTokens,
+        if (settings.topP != null && settings.topP! >= 0 && settings.topP! <= 1) 'top_p': settings.topP,
         if (settings.model.trim().isNotEmpty) 'model': settings.model.trim(),
         'messages': [
           if (settings.systemPrompt.trim().isNotEmpty)

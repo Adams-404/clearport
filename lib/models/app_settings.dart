@@ -8,6 +8,8 @@ class AppSettings {
     this.apiKey = '',
     this.systemPrompt = '',
     this.temperature = 0.7,
+    this.maxOutputTokens,
+    this.topP,
     this.themeMode = ThemeMode.system,
   });
 
@@ -26,6 +28,13 @@ class AppSettings {
   final String systemPrompt;
 
   final double temperature;
+
+  /// Optional output-token limit. Null leaves the server default in control.
+  final int? maxOutputTokens;
+
+  /// Optional nucleus-sampling probability (0.0–1.0).
+  final double? topP;
+
   final ThemeMode themeMode;
 
   /// Trims trailing slashes and accepts a full chat-completions URL pasted
@@ -56,6 +65,10 @@ class AppSettings {
     String? apiKey,
     String? systemPrompt,
     double? temperature,
+    int? maxOutputTokens,
+    bool clearMaxOutputTokens = false,
+    double? topP,
+    bool clearTopP = false,
     ThemeMode? themeMode,
   }) => AppSettings(
     baseUrl: baseUrl ?? this.baseUrl,
@@ -63,6 +76,10 @@ class AppSettings {
     apiKey: apiKey ?? this.apiKey,
     systemPrompt: systemPrompt ?? this.systemPrompt,
     temperature: temperature ?? this.temperature,
+    maxOutputTokens: clearMaxOutputTokens
+        ? null
+        : maxOutputTokens ?? this.maxOutputTokens,
+    topP: clearTopP ? null : topP ?? this.topP,
     themeMode: themeMode ?? this.themeMode,
   );
 
@@ -72,8 +89,22 @@ class AppSettings {
     'apiKey': apiKey,
     'systemPrompt': systemPrompt,
     'temperature': temperature,
+    'maxOutputTokens': maxOutputTokens,
+    'topP': topP,
     'themeMode': themeMode.name,
   };
+
+  static int? _readMaxOutputTokens(Object? value) {
+    if (value is! num || value is double && value % 1 != 0) return null;
+    final tokens = value.toInt();
+    return tokens >= 1 && tokens <= 32768 ? tokens : null;
+  }
+
+  static double? _readTopP(Object? value) {
+    if (value is! num) return null;
+    final topP = value.toDouble();
+    return topP >= 0 && topP <= 1 ? topP : null;
+  }
 
   static AppSettings fromJson(Map<String, dynamic> json) => AppSettings(
     baseUrl: json['baseUrl'] as String? ?? defaultBaseUrl,
@@ -81,6 +112,8 @@ class AppSettings {
     apiKey: json['apiKey'] as String? ?? '',
     systemPrompt: json['systemPrompt'] as String? ?? '',
     temperature: (json['temperature'] as num?)?.toDouble() ?? 0.7,
+    maxOutputTokens: _readMaxOutputTokens(json['maxOutputTokens']),
+    topP: _readTopP(json['topP']),
     themeMode: ThemeMode.values.firstWhere(
       (mode) => mode.name == json['themeMode'],
       orElse: () => ThemeMode.system,
