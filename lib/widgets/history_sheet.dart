@@ -17,13 +17,6 @@ class HistorySheet extends StatefulWidget {
 
   @override
   State<HistorySheet> createState() => _HistorySheetState();
-}
-
-class _HistorySheetState extends State<HistorySheet> {
-  final TextEditingController _search = TextEditingController();
-
-  @override
-  void dispose() { _search.dispose(); super.dispose(); }
 
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
@@ -35,6 +28,14 @@ class _HistorySheetState extends State<HistorySheet> {
       builder: (_) => const HistorySheet(),
     );
   }
+
+}
+
+class _HistorySheetState extends State<HistorySheet> {
+  final TextEditingController _search = TextEditingController();
+
+  @override
+  void dispose() { _search.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +259,6 @@ class _HistorySheetState extends State<HistorySheet> {
       }
     }
   }
-}
 }
 
 class _ConversationTile extends StatelessWidget {
