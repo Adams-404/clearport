@@ -185,7 +185,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 itemBuilder: (context, index) {
                                   final message = messages[index];
                                   final isLast = index == messages.length - 1;
-                                  final showActions = !state.isStreaming && (message.isUser || isLast);
+                                  final showActions = !state.isStreaming;
                                   return MessageBubble(
                                     key: ValueKey(message.id),
                                     message: message,
