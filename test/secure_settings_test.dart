@@ -14,8 +14,9 @@ class _FailingSecretStore implements SecretStore {
 
 void main() {
   group('secure API key migration', () {
-    test('moves a legacy key into secure storage and removes it from JSON',
-        () async {
+    test(
+      'moves a legacy key into secure storage and removes it from JSON',
+      () async {
       final store = Store.memory({
         'version': 1,
         'settings': {
@@ -38,8 +39,9 @@ void main() {
       expect(savedSettings, isNot(contains('apiKey')));
     });
 
-    test('keeps legacy JSON untouched when secure storage is unavailable',
-        () async {
+    test(
+      'keeps legacy JSON untouched when secure storage is unavailable',
+      () async {
       final original = {
         'version': 1,
         'settings': {
