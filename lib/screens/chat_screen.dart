@@ -219,8 +219,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                         state.streamingMessageId == message.id,
                                     showActions: showActions,
                                     onRegenerate:
-                                        showActions && !state.isStreaming
+                                        showActions && isLast && !message.isUser
                                         ? state.regenerate
+                                        : null,
+                                    onEdit: message.isUser && showActions
+                                        ? (_) => _editMessage(message)
                                         : null,
                                   );
                                 },
