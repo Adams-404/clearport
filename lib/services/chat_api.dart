@@ -39,7 +39,11 @@ class CancelToken {
     _onCancel?.call();
   }
 
-  void _bind(void Function() callback) => _onCancel = callback;
+  void _bind(void Function() callback) {
+    _onCancel = callback;
+    // Cancellation may happen before the HTTP client is attached.
+    if (cancelled) callback();
+  }
 }
 
 class ChatApiException implements Exception {
@@ -128,12 +132,16 @@ class ChatApi {
     required void Function(String delta) onDelta,
     CancelToken? token,
   }) async {
+    if (token?.cancelled ?? false) return;
+
     final client = HttpClient()
       ..connectionTimeout = const Duration(seconds: 12);
     token?._bind(() => client.close(force: true));
 
     try {
+      if (token?.cancelled ?? false) return;
       final request = await client.postUrl(chatUri);
+      if (token?.cancelled ?? false) return;
       request.headers.contentType = ContentType.json;
       request.headers.set(HttpHeaders.acceptHeader, 'text/event-stream');
       if (apiKey.isNotEmpty) {
@@ -152,8 +160,10 @@ class ChatApi {
         ],
       };
       request.write(jsonEncode(payload));
+      if (token?.cancelled ?? false) return;
 
       final response = await request.close();
+      if (token?.cancelled ?? false) return;
       if (response.statusCode < 200 || response.statusCode >= 300) {
         final body = await response.transform(utf8.decoder).join();
         throw ChatApiException(
@@ -165,6 +175,8 @@ class ChatApi {
       final mime = response.headers.contentType?.mimeType ?? '';
       final parser = StreamParser(rawMode: mime == 'text/plain');
 
+      // This is an idle timeout: it resets whenever the server emits data.
+      // A quiet stream lasting 120 seconds is treated as an unresponsive server.
       await for (final chunk
           in response
               .transform(utf8.decoder)
