@@ -6,8 +6,8 @@ import '../models/app_settings.dart';
 import '../models/chat_message.dart';
 import '../models/conversation.dart';
 import '../services/chat_api.dart';
-import '../services/store.dart';
 import '../services/secret_store.dart';
+import '../services/store.dart';
 import '../utils/format.dart';
 
 /// Owns settings, saved conversations, streaming state and server health.
@@ -99,8 +99,8 @@ class AppState extends ChangeNotifier {
     // Read the platform secret first. A legacy key is migrated before the
     // plaintext settings file is rewritten without it.
     final rawSettings = data?['settings'];
-    final legacyKey = rawSettings is Map
-        ? rawSettings['apiKey'] as String? ?? ''
+    final legacyKey = rawSettings is Map && rawSettings['apiKey'] is String
+        ? rawSettings['apiKey'] as String
         : '';
     try {
       final storedKey = await _secretStore.read();
@@ -264,7 +264,9 @@ class AppState extends ChangeNotifier {
   void renameConversation(String id, String title) {
     final nextTitle = title.trim();
     if (nextTitle.isEmpty) return;
-    final index = conversations.indexWhere((conversation) => conversation.id == id);
+    final index = conversations.indexWhere(
+      (conversation) => conversation.id == id,
+    );
     if (index == -1) return;
     conversations[index].title = nextTitle;
     conversations[index].touch();
@@ -399,7 +401,9 @@ class AppState extends ChangeNotifier {
               _streamingMessage == assistant &&
               _streamingConversation == conversation &&
               conversations.contains(conversation) &&
-              conversation.messages.any((message) => message.id == assistant.id)) {
+              conversation.messages.any(
+                (message) => message.id == assistant.id,
+              )) {
             _appendDelta(delta);
           }
         },
@@ -532,6 +536,7 @@ class AppState extends ChangeNotifier {
 
     // Capture the state now, not when this write reaches the front of the
     // queue. Later mutations must not change an already-requested snapshot.
+    final apiKey = settings.apiKey;
     final snapshot = <String, dynamic>{
       'version': 1,
       'settings': settings.toJson(),
@@ -545,7 +550,7 @@ class AppState extends ChangeNotifier {
         .then((_) async {
           if (!_secretStorageReady) return;
           try {
-            await _secretStore.write(settings.apiKey);
+            await _secretStore.write(apiKey);
             await _store.write(snapshot);
             secretStorageError = null;
           } catch (_) {
