@@ -10,7 +10,7 @@ void main() {
       expect(parser.add('data: {"choices":[{"delta":{"content":"Hel'), isEmpty);
       expect(
         parser.add(
-          'lo"}}]}\n\ndata: {"choices":[{"delta":{"content":"!"}}]}\n',
+          'lo"}}]}\n\ndata: {"choices":[{"delta":{"content":"!"}}]}\n\n',
         ),
         ['Hello', '!'],
       );
@@ -19,12 +19,36 @@ void main() {
     test('stops at [DONE]', () {
       final parser = StreamParser();
       final deltas = parser.add(
-        'data: {"choices":[{"delta":{"content":"Hi"}}]}\n'
-        'data: [DONE]\n'
-        'data: {"choices":[{"delta":{"content":"ignored"}}]}\n',
+        'data: {"choices":[{"delta":{"content":"Hi"}}]}\n\n'
+        'data: [DONE]\n\n'
+        'data: {"choices":[{"delta":{"content":"ignored"}}]}\n\n',
       );
       expect(deltas, ['Hi']);
       expect(parser.done, isTrue);
+    });
+
+    test('joins multiple data fields into one SSE event', () {
+      final parser = StreamParser();
+      expect(
+        parser.add('data: {"choices":[\n' 'data: {"delta":{"content":"joined"}}]}\n\n'),
+        ['joined'],
+      );
+    });
+
+    test('waits for the event boundary across arbitrary chunk splits', () {
+      final parser = StreamParser();
+      expect(parser.add('data: {"response":"par'), isEmpty);
+      expect(parser.add('tial"}\r'), isEmpty);
+      expect(parser.add('\n\r'), isEmpty);
+      expect(parser.add('\n'), ['partial']);
+    });
+
+    test('ignores comments and SSE metadata fields', () {
+      final parser = StreamParser();
+      expect(
+        parser.add(': keepalive\nevent: message\nid: 7\nretry: 1000\ndata: ok\n\n'),
+        ['ok'],
+      );
     });
 
     test('understands Ollama native shapes', () {
@@ -46,7 +70,7 @@ void main() {
     test('surfaces an error payload', () {
       final parser = StreamParser();
       final deltas = parser.add(
-        'data: {"error":{"message":"model not found"}}\n',
+        'data: {"error":{"message":"model not found"}}\n\n',
       );
       expect(deltas, isEmpty);
       expect(parser.errorMessage, 'model not found');
