@@ -305,15 +305,29 @@ class _Header extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    conversation?.title ?? 'Clearport',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium!.copyWith(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.2,
-                    ),
+                  Row(
+                    children: [
+                      Image.asset(
+                        'assets/branding/clearport-logo.png',
+                        width: 22,
+                        height: 22,
+                        fit: BoxFit.contain,
+                        semanticLabel: 'Clearport',
+                      ),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          conversation?.title ?? 'Clearport',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium!.copyWith(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 1),
                   StatusPill(status: status, model: model, onTap: onRefresh),
