@@ -351,7 +351,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     final parsed = int.tryParse(value.trim());
                     if (value.trim().isEmpty) {
                       _apply(clearMaxOutputTokens: true);
-                    } else if (parsed != null && parsed >= 1 && parsed <= 32768) {
+                    } else if (parsed != null &&
+                        parsed >= 1 &&
+                        parsed <= 32768) {
                       _apply(maxOutputTokens: parsed);
                     }
                   },
@@ -384,9 +386,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (_useTopP) ...[
                   Row(
                     children: [
-                      Text('Top-p', style: TextStyle(fontSize: 12, color: palette.muted)),
+                      Text(
+                        'Top-p',
+                        style: TextStyle(fontSize: 12, color: palette.muted),
+                      ),
                       const Spacer(),
-                      Text(_topP.toStringAsFixed(2), style: TextStyle(fontSize: 12, fontFamily: 'monospace', color: palette.muted)),
+                      Text(
+                        _topP.toStringAsFixed(2),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'monospace',
+                          color: palette.muted,
+                        ),
+                      ),
                     ],
                   ),
                   Slider(
