@@ -4,11 +4,11 @@ set -Eeuo pipefail
 REPO="Adams-404/clearport"
 BRANCH="main"
 RAW="https://raw.githubusercontent.com/$REPO/$BRANCH"
-BIN_DIR="\${PREFIX:-/data/data/com.termux/files/usr}/bin"
+BIN_DIR="${PREFIX:-/data/data/com.termux/files/usr}/bin"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-if [ -z "\${PREFIX:-}" ] || [ ! -d "$PREFIX/bin" ]; then
+if [ -z "${PREFIX:-}" ] || [ ! -d "$PREFIX/bin" ]; then
   echo "This installer is for Termux on Android." >&2
   exit 1
 fi
@@ -17,7 +17,7 @@ command -v pkg >/dev/null 2>&1 || { echo "Termux package manager not found." >&2
 
 echo "Installing Clearport CLI dependencies..."
 pkg update -y
-pkg install -y bash curl jq procps coreutils termux-tools llama-cpp
+pkg install -y bash curl jq procps coreutils termux-tools llama-cpp nano
 
 echo "Downloading Clearport CLI..."
 curl -fsSL "$RAW/scripts/clearport" -o "$TMP/clearport"
