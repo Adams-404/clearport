@@ -20,9 +20,13 @@ void main() {
       server.listen((request) async {
         if (request.uri.path == '/v1/models') {
           request.response.headers.contentType = ContentType.json;
-          request.response.write(jsonEncode({
-            'data': [{'id': 'smoke-model'}],
-          }));
+          request.response.write(
+            jsonEncode({
+              'data': [
+                {'id': 'smoke-model'},
+              ],
+            }),
+          );
           await request.response.close();
           return;
         }
@@ -128,10 +132,19 @@ void main() {
       'android/app/src/main/res/xml/network_security_config.xml',
     ).readAsString();
 
-    expect(manifest, contains('android:networkSecurityConfig="@xml/network_security_config"'));
+    expect(
+      manifest,
+      contains('android:networkSecurityConfig="@xml/network_security_config"'),
+    );
     expect(manifest, isNot(contains('android:usesCleartextTraffic="true"')));
-    expect(networkConfig, contains('<domain includeSubdomains="false">127.0.0.1</domain>'));
-    expect(networkConfig, contains('<domain includeSubdomains="false">localhost</domain>'));
+    expect(
+      networkConfig,
+      contains('<domain includeSubdomains="false">127.0.0.1</domain>'),
+    );
+    expect(
+      networkConfig,
+      contains('<domain includeSubdomains="false">localhost</domain>'),
+    );
     expect(networkConfig, contains('<base-config cleartextTrafficPermitted="false"'));
   });
 }
