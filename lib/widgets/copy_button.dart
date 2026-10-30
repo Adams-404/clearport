@@ -47,18 +47,22 @@ class _CopyButtonState extends State<CopyButton> {
     final palette = context.palette;
     return Tooltip(
       message: _copied ? 'Copied' : widget.tooltip,
-      child: InkResponse(
-        onTap: _copy,
-        radius: 18,
-        child: Padding(
-          padding: const EdgeInsets.all(6),
-          child: AnimatedSwitcher(
+      child: Semantics(
+        button: true,
+        label: _copied ? 'Copied' : widget.tooltip,
+        child: InkResponse(
+          onTap: _copy,
+          radius: 24,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 160),
             child: Icon(
               _copied ? Icons.check_rounded : Icons.copy_rounded,
               key: ValueKey(_copied),
               size: widget.size,
               color: _copied ? palette.accent : palette.muted,
+            ),
             ),
           ),
         ),
