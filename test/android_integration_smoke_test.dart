@@ -70,7 +70,7 @@ void main() {
           maxOutputTokens: 128,
           topP: 0.9,
         ),
-        messages: const [
+        messages: [
           ChatMessage(
             id: 'user-1',
             role: MessageRole.user,
