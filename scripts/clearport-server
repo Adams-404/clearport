@@ -1,0 +1,164 @@
+#!/data/data/com.termux/files/usr/bin/sh
+# Clearport's optional Termux companion for llama.cpp.
+set -eu
+
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/clearport"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/clearport"
+CONFIG_FILE="$CONFIG_DIR/server.conf"
+PID_FILE="$STATE_DIR/llama-server.pid"
+LOG_FILE="$STATE_DIR/llama-server.log"
+
+# Defaults can be overridden in server.conf.
+MODEL_PATH="${MODEL_PATH:-$HOME/models/model.gguf}"
+LLAMA_SERVER_BIN="${LLAMA_SERVER_BIN:-llama-server}"
+HOST="${HOST:-127.0.0.1}"
+PORT="${PORT:-8080}"
+EXTRA_ARGS="${EXTRA_ARGS:-}"
+
+if [ -f "$CONFIG_FILE" ]; then
+  # This is a user-owned shell config file. Keep it private (chmod 600).
+  . "$CONFIG_FILE"
+fi
+
+usage() {
+  cat <<'EOF'
+Usage: clearport-server {start|stop|status|logs}
+
+Commands:
+  start   Start llama-server in the background
+  stop    Stop the managed llama-server process
+  status  Show whether the managed server is running
+  logs    Follow the server log (Ctrl-C to exit)
+
+Configuration: ~/.config/clearport/server.conf
+EOF
+}
+
+fail() {
+  printf 'clearport-server: %s\n' "$*" >&2
+  exit 1
+}
+
+ensure_dirs() {
+  mkdir -p "$CONFIG_DIR" "$STATE_DIR"
+}
+
+read_pid() {
+  [ -f "$PID_FILE" ] || return 1
+  PID="$(cat "$PID_FILE" 2>/dev/null || true)"
+  case "$PID" in
+    ''|*[!0-9]*) return 1 ;;
+  esac
+  [ "$PID" -gt 1 ] || return 1
+  return 0
+}
+
+is_managed_process_running() {
+  read_pid || return 1
+  kill -0 "$PID" 2>/dev/null || return 1
+  # Avoid treating a reused PID as our server process.
+  ps -p "$PID" -o args= 2>/dev/null | grep -E '(^|/|[[:space:]])llama-server([[:space:]]|$)' >/dev/null 2>&1
+}
+
+status() {
+  if is_managed_process_running; then
+    printf 'llama-server is running (PID %s) at http://%s:%s\n' "$PID" "$HOST" "$PORT"
+    printf 'Logs: %s\n' "$LOG_FILE"
+  else
+    if [ -f "$PID_FILE" ]; then
+      rm -f "$PID_FILE"
+      printf 'Removed stale PID file.\n'
+    fi
+    printf 'llama-server is not running.\n'
+    return 1
+  fi
+}
+
+port_is_occupied() {
+  # curl distinguishes a refused connection (7) from a responding service.
+  if command -v curl >/dev/null 2>&1; then
+    curl --silent --show-error --max-time 2 "http://127.0.0.1:$PORT/" >/dev/null 2>&1
+    result=$?
+    [ "$result" -ne 7 ] && [ "$result" -ne 28 ] && return 0
+  fi
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltn 2>/dev/null | grep -E "[:.]$PORT[[:space:]]" >/dev/null 2>&1 && return 0
+  fi
+  return 1
+}
+
+start() {
+  ensure_dirs
+
+  if is_managed_process_running; then
+    printf 'llama-server is already running (PID %s).\n' "$PID"
+    return 0
+  fi
+  [ ! -f "$PID_FILE" ] || rm -f "$PID_FILE"
+
+  command -v "$LLAMA_SERVER_BIN" >/dev/null 2>&1 || fail "Cannot find '$LLAMA_SERVER_BIN'. Install llama.cpp or set LLAMA_SERVER_BIN in $CONFIG_FILE."
+  [ -n "$MODEL_PATH" ] || fail "MODEL_PATH is empty. Set it in $CONFIG_FILE."
+  [ -f "$MODEL_PATH" ] || fail "Model file not found: $MODEL_PATH"
+  [ -r "$MODEL_PATH" ] || fail "Model file is not readable: $MODEL_PATH"
+  case "$PORT" in
+    ''|*[!0-9]*) fail "PORT must be a number." ;;
+  esac
+  [ "$PORT" -ge 1 ] && [ "$PORT" -le 65535 ] || fail "PORT must be between 1 and 65535."
+  case "$HOST" in
+    127.0.0.1|localhost) ;;
+    *) printf 'WARNING: HOST=%s exposes the server beyond loopback. Only change this if you understand the network risk.\n' "$HOST" >&2 ;;
+  esac
+
+  if port_is_occupied; then
+    fail "Port $PORT is already responding. Stop the other service or choose another PORT."
+  fi
+
+  printf 'Starting llama-server...\n'
+  # EXTRA_ARGS is intentionally word-split to allow flags such as "--ctx-size 4096".
+  # shellcheck disable=SC2086
+  nohup "$LLAMA_SERVER_BIN" -m "$MODEL_PATH" --host "$HOST" --port "$PORT" $EXTRA_ARGS >>"$LOG_FILE" 2>&1 </dev/null &
+  PID=$!
+  printf '%s\n' "$PID" > "$PID_FILE"
+  sleep 2
+  if kill -0 "$PID" 2>/dev/null; then
+    printf 'Started llama-server (PID %s).\n' "$PID"
+    printf 'API: http://%s:%s/v1\n' "$HOST" "$PORT"
+    printf 'Logs: %s\n' "$LOG_FILE"
+  else
+    rm -f "$PID_FILE"
+    fail "llama-server exited during startup. Check: $LOG_FILE"
+  fi
+}
+
+stop() {
+  if ! is_managed_process_running; then
+    [ ! -f "$PID_FILE" ] || rm -f "$PID_FILE"
+    printf 'llama-server is not running.\n'
+    return 0
+  fi
+
+  printf 'Stopping llama-server (PID %s)...\n' "$PID"
+  kill "$PID" 2>/dev/null || true
+  count=0
+  while kill -0 "$PID" 2>/dev/null && [ "$count" -lt 10 ]; do
+    sleep 1
+    count=$((count + 1))
+  done
+  if kill -0 "$PID" 2>/dev/null; then
+    kill -KILL "$PID" 2>/dev/null || true
+  fi
+  rm -f "$PID_FILE"
+  printf 'Stopped.\n'
+}
+
+case "${1:-}" in
+  start) start ;;
+  stop) stop ;;
+  status) status ;;
+  logs)
+    [ -f "$LOG_FILE" ] || fail "No log file yet. Start the server first."
+    tail -n 80 -f "$LOG_FILE"
+    ;;
+  -h|--help|help|'') usage ;;
+  *) usage >&2; exit 2 ;;
+esac
