@@ -44,6 +44,7 @@ void main() {
   test('serializes writes and preserves each requested snapshot', () async {
     final store = _DelayedStore();
     final state = AppState(store: store);
+    await state.load();
 
     state.updateSettings(const AppSettings(model: 'first-model'));
     state.flush();
