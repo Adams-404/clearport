@@ -76,8 +76,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         apiKey: apiKey,
         systemPrompt: systemPrompt,
         temperature: temperature,
-        maxOutputTokens: clearMaxOutputTokens ? null : maxOutputTokens,
-        topP: clearTopP ? null : topP,
+        maxOutputTokens: maxOutputTokens,
+        clearMaxOutputTokens: clearMaxOutputTokens,
+        topP: topP,
+        clearTopP: clearTopP,
         themeMode: themeMode,
       ),
     );
