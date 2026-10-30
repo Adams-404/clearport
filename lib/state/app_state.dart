@@ -93,9 +93,12 @@ class AppState extends ChangeNotifier {
     // assistant placeholders left behind by an interrupted generation.
     var recoveredInterruptedGeneration = false;
     for (final conversation in conversations) {
-      recoveredInterruptedGeneration = conversation.messages.removeWhere(
-            (message) => !message.isUser && message.content.trim().isEmpty,
-          ).isNotEmpty ||
+      final originalMessageCount = conversation.messages.length;
+      conversation.messages.removeWhere(
+        (message) => !message.isUser && message.content.trim().isEmpty,
+      );
+      recoveredInterruptedGeneration =
+          conversation.messages.length < originalMessageCount ||
           recoveredInterruptedGeneration;
     }
 
