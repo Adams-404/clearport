@@ -19,4 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check POSIX shell syntax
-        run: sh -n scripts/clearport-server
+        run: |
+          sh -n scripts/clearport-server
+          sh -n scripts/test-clearport-server.sh
+      - name: Smoke-test launcher lifecycle with a mock server
+        run: sh scripts/test-clearport-server.sh
