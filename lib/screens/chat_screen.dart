@@ -118,7 +118,33 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
-  Future<void> _editMessage(ChatMessage message) async {\n    final controller = TextEditingController(text: message.content);\n    final replacement = await showDialog<String>(\n      context: context,\n      builder: (dialogContext) => AlertDialog(\n        title: const Text('Edit message'),\n        content: TextField(\n          controller: controller,\n          autofocus: true,\n          minLines: 2,\n          maxLines: 8,\n          decoration: const InputDecoration(hintText: 'Your message'),\n        ),\n        actions: [\n          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),\n          FilledButton(onPressed: () => Navigator.pop(dialogContext, controller.text), child: const Text('Send')),\n        ],\n      ),\n    );\n    controller.dispose();\n    if (!mounted || replacement == null || replacement.trim().isEmpty) return;\n    _stickToBottom = true;\n    await _state?.editMessage(message.id, replacement);\n    _scrollToBottom();\n  }\n\n  void _useSuggestion(String prompt) {
+  Future<void> _editMessage(ChatMessage message) async {
+    final controller = TextEditingController(text: message.content);
+    final replacement = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Edit message'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          minLines: 2,
+          maxLines: 8,
+          decoration: const InputDecoration(hintText: 'Your message'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, controller.text), child: const Text('Send')),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (!mounted || replacement == null || replacement.trim().isEmpty) return;
+    _stickToBottom = true;
+    await _state?.editMessage(message.id, replacement);
+    _scrollToBottom();
+  }
+
+  void _useSuggestion(String prompt) {
     _input.text = prompt;
     _input.selection = TextSelection.collapsed(offset: prompt.length);
     _inputFocus.requestFocus();
