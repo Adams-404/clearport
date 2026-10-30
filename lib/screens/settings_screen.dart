@@ -192,6 +192,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
+          if (state != null)
+            ListenableBuilder(
+              listenable: state,
+              builder: (context, _) {
+                final error = state.secretStorageError;
+                if (error == null) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(top: 9),
+                  child: Text(
+                    error,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      height: 1.4,
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                );
+              },
+            ),
           const SizedBox(height: 10),
           if (state != null)
             ListenableBuilder(
