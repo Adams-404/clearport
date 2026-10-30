@@ -32,8 +32,9 @@ void main() {
         }
 
         if (request.uri.path == '/v1/chat/completions') {
-          receivedPayload = jsonDecode(await utf8.decoder.bind(request).join())
-              as Map<String, dynamic>;
+          receivedPayload =
+              jsonDecode(await utf8.decoder.bind(request).join())
+                  as Map<String, dynamic>;
           request.response.headers.set(
             HttpHeaders.contentTypeHeader,
             'text/event-stream',
@@ -45,7 +46,7 @@ void main() {
                   'delta': {'content': 'Hello'},
                 },
               ],
-            })}\\n\\n',
+            })}\n\n',
           );
           request.response.write(
             'data: ${jsonEncode({
@@ -54,9 +55,9 @@ void main() {
                   'delta': {'content': ' from Clearport'},
                 },
               ],
-            })}\\n\\n',
+            })}\n\n',
           );
-          request.response.write('data: [DONE]\\n\\n');
+          request.response.write('data: [DONE]\n\n');
           await request.response.close();
           return;
         }
