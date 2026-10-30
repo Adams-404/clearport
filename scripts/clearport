@@ -139,6 +139,9 @@ use_model() {
   else
     : > "$CONFIG_FILE.tmp"
   fi
+  if ! grep -q '^[[:space:]]*EXTRA_ARGS=' "$CONFIG_FILE.tmp"; then
+    printf 'EXTRA_ARGS=%q\n' "-c 2048 -t 4" >> "$CONFIG_FILE.tmp"
+  fi
   printf 'MODEL_PATH=%q\n' "$model" >> "$CONFIG_FILE.tmp"
   mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
   chmod 600 "$CONFIG_FILE"
