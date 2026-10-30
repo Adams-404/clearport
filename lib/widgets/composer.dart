@@ -61,6 +61,7 @@ class Composer extends StatelessWidget {
                     hintText: isStreaming
                         ? 'Generating…'
                         : 'Message your local model',
+                    labelText: 'Message',
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -143,7 +144,11 @@ class _SendButton extends StatelessWidget {
               : isStreaming
               ? onStop
               : onSend,
-          child: Center(
+          child: Semantics(
+            button: true,
+            enabled: active,
+            label: isStreaming ? 'Stop generating' : 'Send message',
+            child: Center(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 160),
               transitionBuilder: (child, animation) => ScaleTransition(
@@ -159,6 +164,7 @@ class _SendButton extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }
