@@ -60,16 +60,6 @@ jobs:
           path: clearport.apk
           if-no-files-found: error
 
-      - name: Publish latest main build
-        if: github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v1.0.2
-          name: Clearport v1.0.2
-          generate_release_notes: true
-          overwrite_files: true
-          files: clearport.apk
-
       - name: Attach APK to pushed version tag
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
