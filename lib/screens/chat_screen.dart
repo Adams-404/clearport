@@ -360,9 +360,8 @@ class _HeaderButton extends StatelessWidget {
       icon: Icon(icon, size: 21),
       color: highlight ? palette.accent : palette.muted,
       style: IconButton.styleFrom(
-        minimumSize: const Size(40, 40),
+        minimumSize: const Size(48, 48),
         padding: EdgeInsets.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
     );
   }
@@ -417,15 +416,22 @@ class _JumpToLatest extends StatelessWidget {
             color: palette.surface,
             shape: CircleBorder(side: BorderSide(color: palette.border)),
             clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: onTap,
-              child: SizedBox(
-                width: 36,
-                height: 36,
-                child: Icon(
+            child: Tooltip(
+              message: 'Jump to latest message',
+              child: Semantics(
+                button: true,
+                label: 'Jump to latest message',
+                child: InkWell(
+                  onTap: onTap,
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Icon(
                   Icons.arrow_downward_rounded,
                   size: 18,
-                  color: palette.muted,
+                      color: palette.muted,
+                    ),
+                  ),
                 ),
               ),
             ),
