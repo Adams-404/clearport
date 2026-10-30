@@ -1,5 +1,7 @@
 # Termux companion: llama.cpp server
 
+> **Recommended setup:** use the Clearport CLI for one-command installation, server management, and direct terminal chat. See [Termux CLI](termux-cli.md). Install it with `curl -fsSL https://raw.githubusercontent.com/Adams-404/clearport/main/scripts/install-termux.sh | bash`. This page documents the lower-level `clearport-server` helper for existing/manual setups.
+
 Clearport is the chat client; this optional helper starts a separate `llama-server` process in Termux. It does not install llama.cpp, download a model, or run anything inside the Flutter app.
 
 ## 1. Install prerequisites
