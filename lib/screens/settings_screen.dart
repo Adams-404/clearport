@@ -208,8 +208,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 color: theme.colorScheme.onSurface,
                               ),
                             ),
+                            if (status.endpoint != null) ...[
+                              const SizedBox(height: 4),
+                              SelectableText(
+                                'GET ${status.endpoint}',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontFamily: 'monospace',
+                                  color: palette.muted,
+                                ),
+                              ),
+                            ],
                             if (status.message != null) ...[
-                              const SizedBox(height: 2),
+                              const SizedBox(height: 4),
                               Text(
                                 status.message!,
                                 maxLines: 3,
@@ -217,6 +228,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   fontSize: 11,
                                   height: 1.35,
                                   color: palette.muted,
+                                ),
+                              ),
+                            ],
+                            if (status.hint != null) ...[
+                              const SizedBox(height: 5),
+                              Text(
+                                status.hint!,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  height: 1.4,
+                                  color: theme.colorScheme.onSurface,
                                 ),
                               ),
                             ],
