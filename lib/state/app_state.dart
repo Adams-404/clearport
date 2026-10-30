@@ -163,6 +163,53 @@ class AppState extends ChangeNotifier {
     return removed;
   }
 
+  /// Imports conversations after the caller has explicitly selected merge or replace.
+  /// Existing conversation IDs are remapped during a merge to avoid overwriting data.
+  void importConversations(
+    List<Conversation> incoming, {
+    required bool replace,
+  }) {
+    if (isStreaming) stopStreaming();
+    if (replace) {
+      conversations
+        ..clear()
+        ..addAll(incoming);
+    } else {
+      final usedIds = conversations.map((c) => c.id).toSet();
+      for (final item in incoming) {
+        var id = item.id;
+        if (usedIds.contains(id)) {
+          id = _nextId('import');
+        }
+        usedIds.add(id);
+        conversations.add(
+          Conversation(
+            id: id,
+            title: item.title,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+            messages: item.messages
+                .map((message) => ChatMessage(
+                      id: _nextId('m'),
+                      role: message.role,
+                      content: message.content,
+                      createdAt: message.createdAt,
+                      isError: message.isError,
+                    ))
+                .toList(),
+          ),
+        );
+      }
+    }
+    if (conversations.isEmpty) {
+      _createConversation();
+    } else {
+      activeId = conversations.first.id;
+    }
+    _schedulePersist(force: true);
+    _notify();
+  }
+
   void restoreConversation(Conversation conversation) {
     conversations.add(conversation);
     activeId = conversation.id;
