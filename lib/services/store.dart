@@ -11,9 +11,12 @@ class Store {
   Store._(this._file);
 
   /// Used when the platform directory is unavailable (e.g. widget tests).
-  Store.memory() : _file = null;
+  Store.memory([Map<String, dynamic>? initial])
+    : _file = null,
+      _memoryData = initial;
 
   final File? _file;
+  Map<String, dynamic>? _memoryData;
 
   static Future<Store> open() async {
     try {
@@ -27,7 +30,10 @@ class Store {
 
   Future<Map<String, dynamic>?> read() async {
     final file = _file;
-    if (file == null) return null;
+    if (file == null) {
+      final data = _memoryData;
+      return data == null ? null : Map<String, dynamic>.from(data);
+    }
     try {
       if (!await file.exists()) return null;
       final text = await file.readAsString();
@@ -42,7 +48,10 @@ class Store {
 
   Future<void> write(Map<String, dynamic> data) async {
     final file = _file;
-    if (file == null) return;
+    if (file == null) {
+      _memoryData = Map<String, dynamic>.from(data);
+      return;
+    }
     final temp = File('${file.path}.tmp');
     try {
       await temp.writeAsString(jsonEncode(data), flush: true);
