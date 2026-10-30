@@ -262,7 +262,16 @@ class AppState extends ChangeNotifier {
         messages: history,
         token: token,
         onDelta: (delta) {
-          if (!_cancelled) _appendDelta(delta);
+          // Ignore callbacks from an obsolete request or a conversation that
+          // has since been removed/replaced.
+          if (!_cancelled &&
+              _cancelToken == token &&
+              _streamingMessage == assistant &&
+              _streamingConversation == conversation &&
+              conversations.contains(conversation) &&
+              conversation.messages.any((message) => message.id == assistant.id)) {
+            _appendDelta(delta);
+          }
         },
       );
       _flushPending();
