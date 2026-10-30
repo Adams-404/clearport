@@ -28,9 +28,9 @@ void main() {
         });
         final secrets = MemorySecretStore();
         final state = AppState(store: store, secretStore: secrets);
-  
+
         await state.load();
-  
+
         expect(state.settings.apiKey, 'legacy-secret');
         expect(secrets.value, 'legacy-secret');
         expect(state.secretStorageError, isNull);
@@ -57,9 +57,9 @@ void main() {
           store: store,
           secretStore: _FailingSecretStore(),
         );
-  
+
         await state.load();
-  
+
         expect(state.settings.apiKey, 'legacy-secret');
         expect(state.secretStorageError, isNotNull);
         final saved = await store.read();
