@@ -51,7 +51,8 @@ void main() {
       find.textContaining('Hello from the test', findRichText: true),
       findsOneWidget,
     );
-    expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
+    // Both the user prompt and assistant reply expose a copy action.
+    expect(find.byIcon(Icons.copy_rounded), findsNWidgets(2));
   });
 
   testWidgets('shows an inline error when the server fails', (tester) async {
