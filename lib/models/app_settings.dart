@@ -66,7 +66,9 @@ class AppSettings {
     String? systemPrompt,
     double? temperature,
     int? maxOutputTokens,
+    bool clearMaxOutputTokens = false,
     double? topP,
+    bool clearTopP = false,
     ThemeMode? themeMode,
   }) => AppSettings(
     baseUrl: baseUrl ?? this.baseUrl,
@@ -74,8 +76,10 @@ class AppSettings {
     apiKey: apiKey ?? this.apiKey,
     systemPrompt: systemPrompt ?? this.systemPrompt,
     temperature: temperature ?? this.temperature,
-    maxOutputTokens: maxOutputTokens ?? this.maxOutputTokens,
-    topP: topP ?? this.topP,
+    maxOutputTokens: clearMaxOutputTokens
+        ? null
+        : maxOutputTokens ?? this.maxOutputTokens,
+    topP: clearTopP ? null : topP ?? this.topP,
     themeMode: themeMode ?? this.themeMode,
   );
 
