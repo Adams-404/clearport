@@ -118,7 +118,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
-  void _useSuggestion(String prompt) {
+  Future<void> _editMessage(ChatMessage message) async {\n    final controller = TextEditingController(text: message.content);\n    final replacement = await showDialog<String>(\n      context: context,\n      builder: (dialogContext) => AlertDialog(\n        title: const Text('Edit message'),\n        content: TextField(\n          controller: controller,\n          autofocus: true,\n          minLines: 2,\n          maxLines: 8,\n          decoration: const InputDecoration(hintText: 'Your message'),\n        ),\n        actions: [\n          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),\n          FilledButton(onPressed: () => Navigator.pop(dialogContext, controller.text), child: const Text('Send')),\n        ],\n      ),\n    );\n    controller.dispose();\n    if (!mounted || replacement == null || replacement.trim().isEmpty) return;\n    _stickToBottom = true;\n    await _state?.editMessage(message.id, replacement);\n    _scrollToBottom();\n  }\n\n  void _useSuggestion(String prompt) {
     _input.text = prompt;
     _input.selection = TextSelection.collapsed(offset: prompt.length);
     _inputFocus.requestFocus();
@@ -185,7 +185,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 itemBuilder: (context, index) {
                                   final message = messages[index];
                                   final isLast = index == messages.length - 1;
-                                  final showActions = isLast && !message.isUser;
+                                  final showActions = !state.isStreaming && (message.isUser || isLast);
                                   return MessageBubble(
                                     key: ValueKey(message.id),
                                     message: message,
