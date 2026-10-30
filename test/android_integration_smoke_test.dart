@@ -145,6 +145,9 @@ void main() {
       networkConfig,
       contains('<domain includeSubdomains="false">localhost</domain>'),
     );
-    expect(networkConfig, contains('<base-config cleartextTrafficPermitted="false"'));
+    expect(
+      networkConfig,
+      contains('<base-config cleartextTrafficPermitted="false"'),
+    );
   });
 }
