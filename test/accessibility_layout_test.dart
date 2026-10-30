@@ -13,8 +13,8 @@ void main() {
     addTearDown(controller.dispose);
     addTearDown(focusNode.dispose);
 
-    await tester.view.setPhysicalSize(const Size(320, 640));
-    await tester.view.setDevicePixelRatio(1);
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
