@@ -178,7 +178,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   autocorrect: false,
                   onChanged: (value) => _apply(apiKey: value),
                   suffix: IconButton(
-                    onPressed: () => setState(() => _obscureKey = !_obscureKey),
+                    onPressed: () => setState(
+                      () => _obscureKey = !_obscureKey,
+                    ),
                     tooltip: _obscureKey ? 'Show key' : 'Hide key',
                     icon: Icon(
                       _obscureKey
@@ -344,7 +346,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   label: 'Maximum output tokens',
                   controller: _maxTokens,
                   hint: 'Server default',
-                  helper: 'Optional. Leave empty to use the server default (1–32768).',
+                  helper:
+                      'Optional. Leave empty to use the server default (1–32768).',
                   keyboardType: TextInputType.number,
                   autocorrect: false,
                   onChanged: (value) {
@@ -610,7 +613,11 @@ class _Field extends StatelessWidget {
             padding: const EdgeInsets.only(top: 6),
             child: Text(
               helper!,
-              style: TextStyle(fontSize: 11, height: 1.4, color: palette.muted),
+              style: TextStyle(
+                fontSize: 11,
+                height: 1.4,
+                color: palette.muted,
+              ),
             ),
           ),
       ],
