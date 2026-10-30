@@ -7,7 +7,7 @@ Clearport CLI is a small Termux companion for running a local llama.cpp model an
 Run this single command inside Termux:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Adams-404/clearport/main/scripts/install-termux.sh | bash
+pkg install -y curl && curl -fsSL https://raw.githubusercontent.com/Adams-404/clearport/main/scripts/install-termux.sh | bash
 ```
 
 The installer installs the Termux packages needed by the CLI, including llama-cpp, curl, and jq. It downloads the CLI and its server helper into $PREFIX/bin.
