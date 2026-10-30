@@ -10,7 +10,7 @@ Built Android-first. The UI is platform-agnostic, so desktop is a `flutter creat
 
 ## Everything on your phone (Termux)
 
-If the model runs in **Termux on the same phone**, you need no computer, no `adb`, and no LAN IP. `127.0.0.1` is exactly right.
+If the model runs in **Termux on the same phone**, you need no computer, no `adb`, and no LAN IP. `127.0.0.1` is exactly right. Android permits cleartext HTTP only to loopback hosts (`127.0.0.1` and `localhost`); HTTPS works for remote servers as usual. Remote plain-HTTP endpoints are blocked by Android's network security policy.
 
 1. **Start your model server in Termux** and keep it on port 8080. Clearport needs an OpenAI-compatible endpoint at `http://127.0.0.1:8080/v1` — for example llama.cpp's `llama-server` (default host/port already match) or any other server you already run. If your server listens on `0.0.0.0:8080`, loopback still works.
 
@@ -221,6 +221,19 @@ No state-management package: `ChangeNotifier` + `ListenableBuilder` and one `Inh
 | Status says **Server reachable** | The server answered, but `/models` is missing or unauthorized. Chat may still work |
 | `flutter build apk` fails on licenses | Run `flutter doctor --android-licenses` |
 | App can't reach `http://` | Cleartext HTTP is enabled in `AndroidManifest.xml` (`usesCleartextTraffic="true"`); keep it for local servers |
+
+
+## Android network security verification
+
+Clearport's Android network security config allows cleartext HTTP only to `127.0.0.1` and `localhost`. All other hosts default to cleartext-denied. HTTPS is unaffected. This is a deliberate security boundary: remote HTTP sends prompts and responses without transport encryption, so use HTTPS for remote servers rather than weakening the app-wide policy.
+
+Manual verification checklist (Android 7.0+):
+
+- [ ] With a server running in Termux on the same phone, `http://127.0.0.1:8080/v1` connects and can stream a reply.
+- [ ] `http://localhost:<port>` is permitted by Android's network policy.
+- [ ] A remote plain-HTTP endpoint (for example, a server on another LAN device) is rejected by Android.
+- [ ] The equivalent remote HTTPS endpoint connects when its certificate is trusted.
+- [ ] Confirm the debug and release APKs behave the same; the main manifest owns this policy.
 
 ## Desktop (optional)
 
