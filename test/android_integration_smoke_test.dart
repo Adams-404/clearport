@@ -129,7 +129,8 @@ void main() {
 
     expect(restored.baseUrl, settings.baseUrl);
     expect(restored.model, settings.model);
-    expect(restored.apiKey, settings.apiKey);
+    expect(restored.apiKey, isEmpty);
+    expect(settings.toJson(), isNot(contains('apiKey')));
     expect(restored.systemPrompt, settings.systemPrompt);
     expect(restored.temperature, settings.temperature);
     expect(restored.maxOutputTokens, settings.maxOutputTokens);

@@ -192,6 +192,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
+          if (state != null)
+            ListenableBuilder(
+              listenable: state,
+              builder: (context, _) {
+                final error = state.secretStorageError;
+                if (error == null) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(top: 9),
+                  child: Text(
+                    error,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      height: 1.4,
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                );
+              },
+            ),
           const SizedBox(height: 10),
           if (state != null)
             ListenableBuilder(
@@ -325,14 +344,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   label: 'Maximum output tokens',
                   controller: _maxTokens,
                   hint: 'Server default',
-                  helper: 'Optional. Leave empty to use the server default (1–32768).',
+                  helper:
+                      'Optional. Leave empty to use the server default (1–32768).',
                   keyboardType: TextInputType.number,
                   autocorrect: false,
                   onChanged: (value) {
                     final parsed = int.tryParse(value.trim());
                     if (value.trim().isEmpty) {
                       _apply(clearMaxOutputTokens: true);
-                    } else if (parsed != null && parsed >= 1 && parsed <= 32768) {
+                    } else if (parsed != null &&
+                        parsed >= 1 &&
+                        parsed <= 32768) {
                       _apply(maxOutputTokens: parsed);
                     }
                   },
@@ -365,9 +387,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (_useTopP) ...[
                   Row(
                     children: [
-                      Text('Top-p', style: TextStyle(fontSize: 12, color: palette.muted)),
+                      Text(
+                        'Top-p',
+                        style: TextStyle(fontSize: 12, color: palette.muted),
+                      ),
                       const Spacer(),
-                      Text(_topP.toStringAsFixed(2), style: TextStyle(fontSize: 12, fontFamily: 'monospace', color: palette.muted)),
+                      Text(
+                        _topP.toStringAsFixed(2),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'monospace',
+                          color: palette.muted,
+                        ),
+                      ),
                     ],
                   ),
                   Slider(

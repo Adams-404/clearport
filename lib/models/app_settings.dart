@@ -86,7 +86,6 @@ class AppSettings {
   Map<String, dynamic> toJson() => {
     'baseUrl': baseUrl,
     'model': model,
-    'apiKey': apiKey,
     'systemPrompt': systemPrompt,
     'temperature': temperature,
     'maxOutputTokens': maxOutputTokens,
@@ -109,7 +108,6 @@ class AppSettings {
   static AppSettings fromJson(Map<String, dynamic> json) => AppSettings(
     baseUrl: json['baseUrl'] as String? ?? defaultBaseUrl,
     model: json['model'] as String? ?? '',
-    apiKey: json['apiKey'] as String? ?? '',
     systemPrompt: json['systemPrompt'] as String? ?? '',
     temperature: (json['temperature'] as num?)?.toDouble() ?? 0.7,
     maxOutputTokens: _readMaxOutputTokens(json['maxOutputTokens']),
