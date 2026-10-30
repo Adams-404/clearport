@@ -17,11 +17,11 @@ class AppState extends ChangeNotifier {
     SecretStore? secretStore,
     ChatApi Function(AppSettings settings)? apiFactory,
   }) : _store = store ?? Store.memory(),
-      _secretStore = secretStore ?? MemorySecretStore(),
-      _apiFactory =
-          apiFactory ??
-          ((settings) =>
-              ChatApi(baseUrl: settings.baseUrl, apiKey: settings.apiKey));
+       _secretStore = secretStore ?? MemorySecretStore(),
+       _apiFactory =
+           apiFactory ??
+           ((settings) =>
+               ChatApi(baseUrl: settings.baseUrl, apiKey: settings.apiKey));
 
   static const _persistDelay = Duration(milliseconds: 700);
   static const _streamFlushInterval = Duration(milliseconds: 45);
