@@ -240,13 +240,15 @@ class AppState extends ChangeNotifier {
             createdAt: item.createdAt,
             updatedAt: item.updatedAt,
             messages: item.messages
-                .map((message) => ChatMessage(
-                      id: _nextId('m'),
-                      role: message.role,
-                      content: message.content,
-                      createdAt: message.createdAt,
-                      isError: message.isError,
-                    ))
+                .map(
+                  (message) => ChatMessage(
+                    id: _nextId('m'),
+                    role: message.role,
+                    content: message.content,
+                    createdAt: message.createdAt,
+                    isError: message.isError,
+                  ),
+                )
                 .toList(),
           ),
         );
