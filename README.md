@@ -6,7 +6,7 @@ A clean, minimal Flutter chat client for a local AI server. Streaming replies, s
 
 Built Android-first. The UI is platform-agnostic, so desktop is a `flutter create` away.
 
-> **Scope:** Clearport is the frontend only. It does not bundle or run a model — you point it at an OpenAI-compatible server (Ollama, LM Studio, llama.cpp, vLLM, LocalAI…).
+> **Architecture:** The Android app is a lightweight chat frontend for an OpenAI-compatible server. The companion Termux CLI can manage a local llama.cpp server and provide interactive terminal chat, so the Android app is optional. Neither component bundles model weights.
 
 ## Everything on your phone (Termux)
 
