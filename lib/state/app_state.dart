@@ -567,10 +567,11 @@ class AppState extends ChangeNotifier {
     return _persistQueue;
   }
 
-  /// Stops network generation and saves the latest partial response when the
-  /// app is backgrounded. Android may still kill the process afterwards.
+  /// Persist the latest state when the app is backgrounded without
+  /// cancelling an in-flight response. Background execution is controlled by
+  /// the operating system; pausing the UI should not deliberately abort a
+  /// request that may continue to complete.
   void _handleAppPaused() {
-    if (isStreaming) stopStreaming();
     flush();
   }
 
