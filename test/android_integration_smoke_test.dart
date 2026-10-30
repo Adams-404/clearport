@@ -75,7 +75,7 @@ void main() {
             id: 'user-1',
             role: MessageRole.user,
             content: 'Say hello.',
-            createdAt: null,
+            createdAt: DateTime.utc(2026),
           ),
         ],
         onDelta: deltas.add,
