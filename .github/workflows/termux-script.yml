@@ -1,0 +1,26 @@
+name: Termux launcher
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/clearport-server'
+      - 'docs/termux-server.md'
+      - '.github/workflows/termux-script.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shell-syntax:
+    name: Validate launcher shell syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check POSIX shell syntax
+        run: |
+          sh -n scripts/clearport-server
+          sh -n scripts/test-clearport-server.sh
+      - name: Smoke-test launcher lifecycle with a mock server
+        run: sh scripts/test-clearport-server.sh

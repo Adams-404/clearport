@@ -12,7 +12,7 @@ Built Android-first. The UI is platform-agnostic, so desktop is a `flutter creat
 
 If the model runs in **Termux on the same phone**, you need no computer, no `adb`, and no LAN IP. `127.0.0.1` is exactly right. Android permits cleartext HTTP only to loopback hosts (`127.0.0.1` and `localhost`); HTTPS works for remote servers as usual. Remote plain-HTTP endpoints are blocked by Android's network security policy.
 
-1. **Start your model server in Termux** and keep it on port 8080. Clearport needs an OpenAI-compatible endpoint at `http://127.0.0.1:8080/v1` — for example llama.cpp's `llama-server` (default host/port already match) or any other server you already run. If your server listens on `0.0.0.0:8080`, loopback still works.
+1. **Start your model server in Termux.** For llama.cpp, Clearport includes an optional companion launcher with `clearport-server start|stop|status|logs`, model-path configuration, and logs. See [the Termux server guide](docs/termux-server.md). The default endpoint is `http://127.0.0.1:8080/v1`.
 
 2. **Install the app from Releases:** open [Releases](https://github.com/Adams-404/clearport/releases/latest) on the phone, download `clearport.apk`, tap it, and allow **Install unknown apps** for the browser or file manager.
 
