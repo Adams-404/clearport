@@ -88,12 +88,26 @@ class AppState extends ChangeNotifier {
       activeId = data['activeId'] as String?;
     }
 
+    // A process can be killed before an in-flight request reaches its
+    // completion handler. Keep any partial answer, but discard empty
+    // assistant placeholders left behind by an interrupted generation.
+    var recoveredInterruptedGeneration = false;
+    for (final conversation in conversations) {
+      recoveredInterruptedGeneration = conversation.messages.removeWhere(
+            (message) => !message.isUser && message.content.trim().isEmpty,
+          ).isNotEmpty ||
+          recoveredInterruptedGeneration;
+    }
+
     if (conversations.isEmpty) _createConversation();
     if (activeId == null ||
         !conversations.any((conversation) => conversation.id == activeId)) {
       activeId = conversations.first.id;
     }
     themeMode.value = settings.themeMode;
+    if (recoveredInterruptedGeneration) {
+      _schedulePersist(force: true);
+    }
     _notify();
     unawaited(refreshStatus());
   }
@@ -101,7 +115,7 @@ class AppState extends ChangeNotifier {
   /// Starts the health poll and lifecycle hooks. Call once after [load].
   void start() {
     _lifecycle ??= AppLifecycleListener(
-      onPause: flush,
+      onPause: _handleAppPaused,
       onResume: () => unawaited(refreshStatus(silent: true)),
     );
     _pollTimer ??= Timer.periodic(const Duration(seconds: 30), (_) {
@@ -494,6 +508,13 @@ class AppState extends ChangeNotifier {
         .then((_) => _store.write(snapshot))
         .catchError((Object _) {});
     return _persistQueue;
+  }
+
+  /// Stops network generation and saves the latest partial response when the
+  /// app is backgrounded. Android may still kill the process afterwards.
+  void _handleAppPaused() {
+    if (isStreaming) stopStreaming();
+    flush();
   }
 
   /// Writes immediately; used when the app goes to the background.
