@@ -82,7 +82,13 @@ class _UserMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final theme = Theme.of(context);
-    return Column(\n      crossAxisAlignment: CrossAxisAlignment.end,\n      mainAxisSize: MainAxisSize.min,\n      children: [\n        Align(\n      alignment: Alignment.centerRight,\n      child: Container(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Align(
+      alignment: Alignment.centerRight,
+      child: Container(
         constraints: BoxConstraints(
           maxWidth: MediaQuery.sizeOf(context).width * 0.82,
         ),
