@@ -2,15 +2,8 @@ import 'dart:convert';
 
 /// Turns a byte stream from an AI server into plain text deltas.
 ///
-/// Understands the common local-server shapes:
-///  * OpenAI SSE: `data: {"choices":[{"delta":{"content":"Hi"}}]}`
-///  * Ollama chat: `{"message":{"content":"Hi"},"done":false}`
-///  * Ollama generate: `{"response":"Hi"}`
-///  * Plain text chunks
-///
-/// The parser is deliberately tolerant: unknown JSON is ignored and
-/// non-JSON payloads are passed through, so it keeps working with servers
-/// that invent their own format.
+/// Understands OpenAI-compatible SSE, Ollama's newline-delimited JSON shapes,
+/// and plain text lines. Input chunks may end at any byte-decoding boundary.
 class StreamParser {
   StreamParser({this.rawMode = false});
 
@@ -18,59 +11,85 @@ class StreamParser {
   final bool rawMode;
 
   final StringBuffer _buffer = StringBuffer();
+  final List<String> _sseData = [];
   bool done = false;
   String? errorMessage;
 
-  /// Feeds a decoded chunk and returns any text deltas it completed.
+  /// Feeds a decoded chunk and returns any text deltas from completed records.
   List<String> add(String chunk) {
     if (rawMode) return chunk.isEmpty ? const [] : [chunk];
 
     _buffer.write(chunk);
-    var text = _buffer.toString();
+    var input = _buffer.toString();
     final deltas = <String>[];
 
     while (!done) {
-      final newline = text.indexOf('\n');
+      final newline = input.indexOf('\n');
       if (newline == -1) break;
-      var line = text.substring(0, newline);
-      text = text.substring(newline + 1);
+      var line = input.substring(0, newline);
+      input = input.substring(newline + 1);
       if (line.endsWith('\r')) line = line.substring(0, line.length - 1);
       _handleLine(line, deltas);
     }
 
     _buffer
       ..clear()
-      ..write(done ? '' : text);
+      ..write(done ? '' : input);
     return deltas;
   }
 
-  /// Handles a final line that arrived without a trailing newline.
+  /// Processes a final unterminated line and any pending SSE event.
   List<String> flush() {
     if (rawMode || done) return const [];
-    final rest = _buffer.toString().trim();
-    _buffer.clear();
-    if (rest.isEmpty) return const [];
     final deltas = <String>[];
-    _handleLine(rest, deltas);
+    final rest = _buffer.toString();
+    _buffer.clear();
+    if (rest.isNotEmpty) _handleLine(rest, deltas);
+    if (!done) _dispatchSseEvent(deltas);
     return deltas;
   }
 
   void _handleLine(String line, List<String> deltas) {
-    final trimmed = line.trim();
-    if (trimmed.isEmpty) return;
-    // SSE comments and non-data fields.
-    if (trimmed.startsWith(':') ||
-        trimmed.startsWith('event:') ||
-        trimmed.startsWith('id:') ||
-        trimmed.startsWith('retry:')) {
+    if (line.isEmpty) {
+      _dispatchSseEvent(deltas);
       return;
     }
 
-    final isDataField = trimmed.startsWith('data:');
-    final payload = isDataField ? trimmed.substring(5).trim() : trimmed;
+    // SSE comments and metadata fields do not contribute to the data payload.
+    if (line.startsWith(':')) return;
+    if (line.startsWith('data:')) {
+      var value = line.substring(5);
+      // The SSE grammar removes at most one optional leading space.
+      if (value.startsWith(' ')) value = value.substring(1);
+      _sseData.add(value);
+      return;
+    }
+    if (line.startsWith('event:') ||
+        line.startsWith('id:') ||
+        line.startsWith('retry:')) {
+      return;
+    }
+
+    // A non-SSE line is a standalone Ollama JSON or plain-text record.
+    // Flush any preceding SSE event first, preserving stream order.
+    _dispatchSseEvent(deltas);
+    if (done) return;
+    _processPayload(line, false, deltas);
+  }
+
+  void _dispatchSseEvent(List<String> deltas) {
+    if (_sseData.isEmpty) return;
+    final payload = _sseData.join('\n');
+    _sseData.clear();
+    _processPayload(payload, true, deltas);
+  }
+
+  void _processPayload(String payload, bool isSseData, List<String> deltas) {
     if (payload.isEmpty) return;
     if (payload == '[DONE]') {
       done = true;
+      _buffer.clear();
+      _sseData.clear();
       return;
     }
 
@@ -81,18 +100,19 @@ class StreamParser {
         if (error != null) {
           errorMessage = error;
           done = true;
+          _buffer.clear();
+          _sseData.clear();
           return;
         }
         final text = _extractText(decoded);
         if (text != null && text.isNotEmpty) deltas.add(text);
         return;
       } on FormatException {
-        // Not JSON after all — fall through and treat it as text.
+        // Not JSON after all: pass the original payload through as text.
       }
     }
 
-    // Raw text. SSE data keeps its exact bytes; bare lines keep their newline.
-    deltas.add(isDataField ? payload : '$payload\n');
+    deltas.add(isSseData ? payload : '$payload\n');
   }
 
   String? _extractText(Object? decoded) {
@@ -116,7 +136,6 @@ class StreamParser {
       }
     }
 
-    // Ollama's native /api/chat shape.
     final message = decoded['message'];
     if (message is Map && message['content'] is String) {
       return message['content'] as String;
