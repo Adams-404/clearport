@@ -59,7 +59,7 @@ void main() {}
 
     expect(find.text('dart'), findsOneWidget);
     expect(find.text('void main() {}'), findsOneWidget);
-    expect(find.byType(SelectableText), findsOneWidget);
+    expect(find.widgetWithText(SelectableText, 'void main() {}'), findsOneWidget);
     expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
   });
 
