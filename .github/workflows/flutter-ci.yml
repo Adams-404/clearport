@@ -40,7 +40,7 @@ jobs:
         run: |
           mapfile -t dart_files < <(git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA" -- '*.dart')
           if (("${#dart_files[@]}" > 0)); then
-            dart format --output=show "${dart_files[@]}"
+            dart format --output=none --set-exit-if-changed "${dart_files[@]}"
           else
             echo "No Dart files changed; formatting check skipped."
           fi
