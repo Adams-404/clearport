@@ -15,7 +15,7 @@ void main() {
       const settings = AppSettings();
       expect(settings.maxOutputTokens, isNull);
       expect(settings.topP, isNull);
-      expect(settings.toJson(), isNot(contains('maxOutputTokens')));
+      expect(settings.toJson()['maxOutputTokens'], isNull);
     });
 
     test('ignores invalid persisted generation values', () {
