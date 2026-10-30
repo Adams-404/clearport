@@ -70,7 +70,7 @@ void main() {
     test('surfaces an error payload', () {
       final parser = StreamParser();
       final deltas = parser.add(
-        'data: {"error":{"message":"model not found"}}\n',
+        'data: {"error":{"message":"model not found"}}\n\n',
       );
       expect(deltas, isEmpty);
       expect(parser.errorMessage, 'model not found');
