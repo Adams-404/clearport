@@ -1,7 +1,11 @@
+import 'dart:io';
+
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 
 import '../models/conversation.dart';
 import '../state/app_state.dart';
+import '../services/conversation_transfer.dart';
 import '../theme.dart';
 import '../utils/format.dart';
 import 'app_scope.dart';
@@ -55,6 +59,8 @@ class HistorySheet extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
+                IconButton(tooltip: 'Import backup', onPressed: () => _import(context, state), icon: const Icon(Icons.file_download_outlined), visualDensity: VisualDensity.compact),
+                IconButton(tooltip: 'Export all chats', onPressed: () => _export(context, state.conversations), icon: const Icon(Icons.file_upload_outlined), visualDensity: VisualDensity.compact),
                 TextButton.icon(
                   onPressed: () {
                     state.newChat();
@@ -96,6 +102,7 @@ class HistorySheet extends StatelessWidget {
                       },
                       onDelete: () =>
                           _confirmDelete(context, state, conversation),
+                      onExport: () => _export(context, [conversation]),
                     );
                   },
                 );
@@ -107,6 +114,53 @@ class HistorySheet extends StatelessWidget {
     );
   }
 
+  Future<void> _export(BuildContext context, List<Conversation> conversations) async {
+    if (conversations.isEmpty) return;
+    final location = await getSaveLocation(suggestedName: conversations.length == 1 ? 'clearport-chat.json' : 'clearport-backup.json', acceptedTypeGroups: [const XTypeGroup(label: 'JSON backup', extensions: ['json'])]);
+    if (location == null) return;
+    try {
+      await File(location.path).writeAsString(ConversationTransfer.encode(conversations), flush: true);
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Backup exported successfully.')));
+    } catch (error) {
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not export backup: $error')));
+    }
+  }
+
+  Future<void> _import(BuildContext context, AppState state) async {
+    final file = await openFile(acceptedTypeGroups: [const XTypeGroup(label: 'JSON backup', extensions: ['json'])]);
+    if (file == null) return;
+    try {
+      final incoming = ConversationTransfer.decode(await file.readAsString());
+      if (!context.mounted) return;
+      if (incoming.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('This backup contains no conversations.'))); return; }
+      final replace = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
+        backgroundColor: dialogContext.palette.surface,
+        title: const Text('Restore conversations'),
+        content: Text('${incoming.length} conversation(s) found. Merge keeps your current chats. Replace removes current chats first.', style: const TextStyle(fontSize: 14, height: 1.45)),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(null), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Merge')),
+          FilledButton(onPressed: () => Navigator.of(dialogContext).pop(true), style: FilledButton.styleFrom(backgroundColor: Theme.of(dialogContext).colorScheme.error), child: const Text('Replace all')),
+        ],
+      ));
+      if (replace == null || !context.mounted) return;
+      if (replace) {
+        final confirmed = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
+          backgroundColor: dialogContext.palette.surface,
+          title: const Text('Replace all conversations?'),
+          content: const Text('This permanently replaces the conversations currently stored on this device. Export a backup first if you may need them.'),
+          actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')), FilledButton(onPressed: () => Navigator.of(dialogContext).pop(true), style: FilledButton.styleFrom(backgroundColor: Theme.of(dialogContext).colorScheme.error), child: const Text('Replace'))],
+        ));
+        if (confirmed != true || !context.mounted) return;
+      }
+      state.importConversations(incoming, replace: replace);
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(replace ? 'Conversations restored.' : 'Conversations merged into your history.')));
+    } on FormatException catch (error) {
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid backup: ${error.message}')));
+    } catch (error) {
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not import backup: $error')));
+    }
+  }
   Future<void> _confirmDelete(
     BuildContext context,
     AppState state,
@@ -146,12 +200,14 @@ class _ConversationTile extends StatelessWidget {
     required this.selected,
     required this.onTap,
     required this.onDelete,
+    required this.onExport,
   });
 
   final Conversation conversation;
   final bool selected;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final VoidCallback onExport;
 
   @override
   Widget build(BuildContext context) {
@@ -193,6 +249,7 @@ class _ConversationTile extends StatelessWidget {
                     ],
                   ),
                 ),
+                IconButton(onPressed: onExport, tooltip: 'Export chat', visualDensity: VisualDensity.compact, icon: Icon(Icons.ios_share_rounded, size: 17, color: palette.muted)),
                 IconButton(
                   onPressed: onDelete,
                   tooltip: 'Delete chat',
