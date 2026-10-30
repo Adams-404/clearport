@@ -13,12 +13,14 @@ class MessageBubble extends StatefulWidget {
     required this.isStreaming,
     this.showActions = false,
     this.onRegenerate,
+    this.onEdit,
   });
 
   final ChatMessage message;
   final bool isStreaming;
   final bool showActions;
   final VoidCallback? onRegenerate;
+  final ValueChanged<String>? onEdit;
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
@@ -56,7 +58,7 @@ class _MessageBubbleState extends State<MessageBubble>
         child: Padding(
           padding: const EdgeInsets.only(bottom: 18),
           child: widget.message.isUser
-              ? _UserMessage(message: widget.message)
+              ? _UserMessage(message: widget.message, showActions: widget.showActions, onEdit: widget.onEdit)
               : _AssistantMessage(
                   message: widget.message,
                   isStreaming: widget.isStreaming,
@@ -70,15 +72,21 @@ class _MessageBubbleState extends State<MessageBubble>
 }
 
 class _UserMessage extends StatelessWidget {
-  const _UserMessage({required this.message});
+  const _UserMessage({required this.message, required this.showActions, this.onEdit});
 
   final ChatMessage message;
+  final bool showActions;
+  final ValueChanged<String>? onEdit;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     final theme = Theme.of(context);
-    return Align(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Align(
       alignment: Alignment.centerRight,
       child: Container(
         constraints: BoxConstraints(
@@ -104,6 +112,17 @@ class _UserMessage extends StatelessWidget {
           ),
         ),
       ),
+        ),
+        if (showActions)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CopyButton(text: message.content, size: 15),
+              if (onEdit != null)
+                _ActionIcon(icon: Icons.edit_rounded, tooltip: 'Edit', onTap: () => onEdit!(message.content)),
+            ],
+          ),
+      ],
     );
   }
 }

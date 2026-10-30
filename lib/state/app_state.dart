@@ -263,6 +263,27 @@ class AppState extends ChangeNotifier {
     await _runStream();
   }
 
+  /// Replaces a user message and invalidates every later turn before replying.
+  Future<void> editMessage(String messageId, String replacement) async {
+    final content = replacement.trim();
+    if (isStreaming || content.isEmpty) return;
+    final conversation = activeConversation;
+    if (conversation == null) return;
+    final index = conversation.messages.indexWhere((m) => m.id == messageId);
+    if (index < 0 || !conversation.messages[index].isUser) return;
+
+    final message = conversation.messages[index];
+    message.content = content;
+    conversation.messages.removeRange(index + 1, conversation.messages.length);
+    if (index == 0 && conversation.title == 'New chat') {
+      conversation.title = titleFromMessage(content);
+    }
+    conversation.touch();
+    final assistant = _newAssistantMessage(conversation);
+    _prepareStream(conversation, assistant);
+    await _runStream();
+  }
+
   /// Drops the trailing assistant turn and asks again.
   Future<void> regenerate() async {
     if (isStreaming) return;
