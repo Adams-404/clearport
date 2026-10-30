@@ -120,7 +120,7 @@ start() {
   PID=$!
   printf '%s\n' "$PID" > "$PID_FILE"
   sleep 2
-  if kill -0 "$PID" 2>/dev/null; then
+  if is_managed_process_running; then
     printf 'Started llama-server (PID %s).\n' "$PID"
     printf 'API: http://%s:%s/v1\n' "$HOST" "$PORT"
     printf 'Logs: %s\n' "$LOG_FILE"
