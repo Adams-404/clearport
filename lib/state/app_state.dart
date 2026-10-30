@@ -46,6 +46,7 @@ class AppState extends ChangeNotifier {
   Timer? _flushTimer;
   Timer? _pollTimer;
   DateTime _lastPersist = DateTime.fromMillisecondsSinceEpoch(0);
+  Future<void> _persistQueue = Future<void>.value();
   AppLifecycleListener? _lifecycle;
 
   Conversation? get activeConversation {
@@ -387,14 +388,24 @@ class AppState extends ChangeNotifier {
     });
   }
 
-  Future<void> _persist() async {
+  Future<void> _persist() {
     _lastPersist = DateTime.now();
-    await _store.write({
+
+    // Capture the state now, not when this write reaches the front of the
+    // queue. Later mutations must not change an already-requested snapshot.
+    final snapshot = <String, dynamic>{
       'version': 1,
       'settings': settings.toJson(),
       'activeId': activeId,
       'conversations': conversations.map((c) => c.toJson()).toList(),
-    });
+    };
+
+    // Keep writes in request order. Recover the queue after a failed write so
+    // one storage error cannot prevent all future persistence attempts.
+    _persistQueue = _persistQueue
+        .then((_) => _store.write(snapshot))
+        .catchError((Object _) {});
+    return _persistQueue;
   }
 
   /// Writes immediately; used when the app goes to the background.
