@@ -39,12 +39,24 @@ void main() {
             'text/event-stream',
           );
           request.response.write(
-            'data: ${jsonEncode({'choices': [{'delta': {'content': 'Hello'}}]})}\n\n',
+            'data: ${jsonEncode({
+              'choices': [
+                {
+                  'delta': {'content': 'Hello'},
+                },
+              ],
+            })}\\n\\n',
           );
           request.response.write(
-            'data: ${jsonEncode({'choices': [{'delta': {'content': ' from Clearport'}}]})}\n\n',
+            'data: ${jsonEncode({
+              'choices': [
+                {
+                  'delta': {'content': ' from Clearport'},
+                },
+              ],
+            })}\\n\\n',
           );
-          request.response.write('data: [DONE]\n\n');
+          request.response.write('data: [DONE]\\n\\n');
           await request.response.close();
           return;
         }
