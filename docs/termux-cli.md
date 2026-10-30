@@ -6,9 +6,9 @@ Clearport CLI is a small Termux companion for running a local llama.cpp model an
 
 Run this single command inside Termux:
 
-\`\`\`bash
+```bash
 curl -fsSL https://raw.githubusercontent.com/Adams-404/clearport/main/scripts/install-termux.sh | bash
-\`\`\`
+```
 
 The installer installs the Termux packages needed by the CLI, including llama-cpp, curl, and jq. It downloads the CLI and its server helper into $PREFIX/bin.
 
@@ -18,12 +18,12 @@ No model is downloaded. GGUF models can be several gigabytes, so choose and down
 
 Put your GGUF model in ~/models. Then:
 
-\`\`\`bash
+```bash
 clearport local-models
 clearport use ~/models/your-model.gguf
 clearport start
 clearport chat
-\`\`\`
+```
 
 If you have exactly one GGUF model in ~/models and no model has been configured, clearport start automatically selects it. If you have multiple models, choose one explicitly with clearport use.
 
@@ -54,13 +54,13 @@ Inside terminal chat, type /clear to clear conversation context or /exit to leav
 
 The configuration is shell-style. Example:
 
-\`\`\`sh
+```sh
 MODEL_PATH="$HOME/models/qwen2.5-1.5b-instruct-q4_k_m.gguf"
 LLAMA_SERVER_BIN="llama-server"
 HOST="127.0.0.1"
 PORT="8080"
 EXTRA_ARGS="-c 2048 -t 4"
-\`\`\`
+```
 
 Use clearport config to edit it. clearport use changes only MODEL_PATH and preserves other settings.
 
@@ -68,9 +68,9 @@ Use clearport config to edit it. clearport use changes only MODEL_PATH and prese
 
 The server runs independently of the app. If you want the Clearport Android interface, set its Server URL to:
 
-\`\`\`text
+```text
 http://127.0.0.1:8080/v1
-\`\`\`
+```
 
 You can use clearport chat and the Android app against the same server, but avoid simultaneous long generations on a phone with limited RAM.
 
