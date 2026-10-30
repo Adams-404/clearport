@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 import '../theme.dart';
 import 'copy_button.dart';
 
-/// A tiny markdown renderer: fenced code blocks, **bold**, *italic* and
-/// inline `code`. Deliberately small — a chat client, not a document viewer.
+/// Renders model output as GitHub-flavoured Markdown without enabling HTML.
 class MarkdownText extends StatelessWidget {
   const MarkdownText(this.text, {super.key, this.trailing, this.style});
 
   final String text;
-
-  /// Optional inline widget appended to the last paragraph (stream cursor).
   final Widget? trailing;
   final TextStyle? style;
 
@@ -40,74 +38,55 @@ class MarkdownText extends StatelessWidget {
     for (var i = 0; i < blocks.length; i++) {
       final block = blocks[i];
       if (block is _CodeBlock) {
+        children.add(_CodeBlockView(code: block.code, language: block.language));
+      } else if (block is _MarkdownBlock && block.source.trim().isNotEmpty) {
         children.add(
-          _CodeBlockView(code: block.code, language: block.language),
+          Padding(
+            padding: EdgeInsets.only(top: i == 0 ? 0 : 10),
+            child: MarkdownBody(
+              data: block.source,
+              selectable: true,
+              softLineBreak: true,
+              styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
+                p: base,
+                a: base.copyWith(
+                  color: palette.accent,
+                  decoration: TextDecoration.underline,
+                ),
+                code: inlineCode,
+                h1: base.copyWith(fontSize: 23, fontWeight: FontWeight.w700),
+                h2: base.copyWith(fontSize: 20, fontWeight: FontWeight.w700),
+                h3: base.copyWith(fontSize: 17, fontWeight: FontWeight.w600),
+                blockquote: base.copyWith(color: palette.muted),
+                blockquoteDecoration: BoxDecoration(
+                  color: palette.surfaceAlt,
+                  border: Border(
+                    left: BorderSide(color: palette.accent, width: 3),
+                  ),
+                ),
+              ),
+            ),
+          ),
         );
-        continue;
       }
-      final isLast = i == blocks.length - 1;
-      final textBlock = block as _TextBlock;
+    }
+
+    if (trailing != null) {
       children.add(
         Padding(
-          padding: EdgeInsets.only(top: i == 0 ? 0 : 10),
-          child: Text.rich(
-            TextSpan(
-              children: [
-                ..._inlineSpans(textBlock.text, base, inlineCode),
-                if (isLast && trailing != null)
-                  WidgetSpan(
-                    alignment: PlaceholderAlignment.middle,
-                    child: trailing!,
-                  ),
-              ],
-            ),
-            style: base,
-          ),
+          padding: const EdgeInsets.only(top: 2),
+          child: trailing!,
         ),
       );
     }
-
+    if (children.isEmpty && trailing != null) {
+      return Align(alignment: Alignment.centerLeft, child: trailing!);
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: children,
     );
-  }
-
-  List<InlineSpan> _inlineSpans(String text, TextStyle base, TextStyle code) {
-    final spans = <InlineSpan>[];
-    final pattern = RegExp(r'(`[^`\n]+`|\*\*[^*\n]+\*\*|\*[^*\n]+\*)');
-    var cursor = 0;
-    for (final match in pattern.allMatches(text)) {
-      if (match.start > cursor) {
-        spans.add(TextSpan(text: text.substring(cursor, match.start)));
-      }
-      final token = match.group(0)!;
-      if (token.startsWith('`')) {
-        spans.add(
-          TextSpan(text: token.substring(1, token.length - 1), style: code),
-        );
-      } else if (token.startsWith('**')) {
-        spans.add(
-          TextSpan(
-            text: token.substring(2, token.length - 2),
-            style: base.copyWith(fontWeight: FontWeight.w600),
-          ),
-        );
-      } else {
-        spans.add(
-          TextSpan(
-            text: token.substring(1, token.length - 1),
-            style: base.copyWith(fontStyle: FontStyle.italic),
-          ),
-        );
-      }
-      cursor = match.end;
-    }
-    if (cursor < text.length) {
-      spans.add(TextSpan(text: text.substring(cursor)));
-    }
-    return spans;
   }
 }
 
@@ -115,9 +94,9 @@ sealed class _Block {
   const _Block();
 }
 
-class _TextBlock extends _Block {
-  const _TextBlock(this.text);
-  final String text;
+class _MarkdownBlock extends _Block {
+  const _MarkdownBlock(this.source);
+  final String source;
 }
 
 class _CodeBlock extends _Block {
@@ -126,6 +105,8 @@ class _CodeBlock extends _Block {
   final String language;
 }
 
+/// Splits fenced code from Markdown. An unfinished fence is treated as code
+/// while streaming, so partial model output remains renderable.
 List<_Block> _parseBlocks(String source) {
   final blocks = <_Block>[];
   final fence = RegExp(r'```([^\n`]*)\n?([\s\S]*?)(?:```|$)');
@@ -133,7 +114,7 @@ List<_Block> _parseBlocks(String source) {
 
   for (final match in fence.allMatches(source)) {
     if (match.start > cursor) {
-      _addTextBlocks(source.substring(cursor, match.start), blocks);
+      blocks.add(_MarkdownBlock(source.substring(cursor, match.start)));
     }
     final language = (match.group(1) ?? '').trim();
     final code = (match.group(2) ?? '').trimRight();
@@ -141,19 +122,12 @@ List<_Block> _parseBlocks(String source) {
     cursor = match.end;
   }
   if (cursor < source.length) {
-    _addTextBlocks(source.substring(cursor), blocks);
+    blocks.add(_MarkdownBlock(source.substring(cursor)));
   }
-  if (blocks.isEmpty) blocks.add(_TextBlock(source));
+  if (blocks.isEmpty && source.isNotEmpty) {
+    blocks.add(_MarkdownBlock(source));
+  }
   return blocks;
-}
-
-void _addTextBlocks(String raw, List<_Block> blocks) {
-  final trimmed = raw.trim();
-  if (trimmed.isEmpty) return;
-  for (final part in trimmed.split(RegExp(r'\n\s*\n'))) {
-    final paragraph = part.trim();
-    if (paragraph.isNotEmpty) blocks.add(_TextBlock(paragraph));
-  }
 }
 
 class _CodeBlockView extends StatelessWidget {
@@ -203,7 +177,7 @@ class _CodeBlockView extends StatelessWidget {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.all(12),
-            child: Text(
+            child: SelectableText(
               code,
               style: MarkdownText._mono.copyWith(
                 fontSize: 12.8,
