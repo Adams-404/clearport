@@ -210,6 +210,17 @@ class AppState extends ChangeNotifier {
     _notify();
   }
 
+  void renameConversation(String id, String title) {
+    final nextTitle = title.trim();
+    if (nextTitle.isEmpty) return;
+    final index = conversations.indexWhere((conversation) => conversation.id == id);
+    if (index == -1) return;
+    conversations[index].title = nextTitle;
+    conversations[index].touch();
+    _schedulePersist(force: true);
+    _notify();
+  }
+
   void restoreConversation(Conversation conversation) {
     conversations.add(conversation);
     activeId = conversation.id;
