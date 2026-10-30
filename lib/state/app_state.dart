@@ -7,12 +7,17 @@ import '../models/chat_message.dart';
 import '../models/conversation.dart';
 import '../services/chat_api.dart';
 import '../services/store.dart';
+import '../services/secret_store.dart';
 import '../utils/format.dart';
 
 /// Owns settings, saved conversations, streaming state and server health.
 class AppState extends ChangeNotifier {
-  AppState({Store? store, ChatApi Function(AppSettings settings)? apiFactory})
-    : _store = store ?? Store.memory(),
+  AppState({
+    Store? store,
+    SecretStore? secretStore,
+    ChatApi Function(AppSettings settings)? apiFactory,
+  }) : _store = store ?? Store.memory(),
+      _secretStore = secretStore ?? MemorySecretStore(),
       _apiFactory =
           apiFactory ??
           ((settings) =>
@@ -22,6 +27,9 @@ class AppState extends ChangeNotifier {
   static const _streamFlushInterval = Duration(milliseconds: 45);
 
   final Store _store;
+  final SecretStore _secretStore;
+  bool _secretStorageReady = false;
+  String? secretStorageError;
   final ChatApi Function(AppSettings settings) _apiFactory;
 
   AppSettings settings = const AppSettings();
@@ -86,6 +94,32 @@ class AppState extends ChangeNotifier {
         );
       }
       activeId = data['activeId'] as String?;
+    }
+
+    // Read the platform secret first. A legacy key is migrated before the
+    // plaintext settings file is rewritten without it.
+    final rawSettings = data?['settings'];
+    final legacyKey = rawSettings is Map
+        ? rawSettings['apiKey'] as String? ?? ''
+        : '';
+    try {
+      final storedKey = await _secretStore.read();
+      final key = storedKey ?? legacyKey;
+      if (storedKey == null && legacyKey.isNotEmpty) {
+        await _secretStore.write(legacyKey);
+      }
+      settings = settings.copyWith(apiKey: key);
+      _secretStorageReady = true;
+      secretStorageError = null;
+      if (legacyKey.isNotEmpty) await _persist();
+    } catch (_) {
+      // Keep the original file untouched if migration cannot be completed.
+      _secretStorageReady = false;
+      settings = settings.copyWith(apiKey: legacyKey);
+      secretStorageError =
+          'Secure storage is unavailable. Your existing API key has not '
+          'been migrated or removed. Check device security settings and '
+          'restart Clearport.';
     }
 
     // A process can be killed before an in-flight request reaches its
@@ -508,7 +542,20 @@ class AppState extends ChangeNotifier {
     // Keep writes in request order. Recover the queue after a failed write so
     // one storage error cannot prevent all future persistence attempts.
     _persistQueue = _persistQueue
-        .then((_) => _store.write(snapshot))
+        .then((_) async {
+          if (!_secretStorageReady) return;
+          try {
+            await _secretStore.write(settings.apiKey);
+            await _store.write(snapshot);
+            secretStorageError = null;
+          } catch (_) {
+            // Never persist a secret in the JSON settings file as a fallback.
+            secretStorageError =
+                'Could not save the API key securely. It remains in memory '
+                'for this session, but was not written to disk.';
+            _notify();
+          }
+        })
         .catchError((Object _) {});
     return _persistQueue;
   }
