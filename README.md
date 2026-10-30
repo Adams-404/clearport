@@ -12,13 +12,25 @@ Built Android-first. The UI is platform-agnostic, so desktop is a `flutter creat
 
 If the model runs in **Termux on the same phone**, you need no computer, no `adb`, and no LAN IP. `127.0.0.1` is exactly right. Android permits cleartext HTTP only to loopback hosts (`127.0.0.1` and `localhost`); HTTPS works for remote servers as usual. Remote plain-HTTP endpoints are blocked by Android's network security policy.
 
-1. **Start your model server in Termux.** For llama.cpp, Clearport includes an optional companion launcher with `clearport-server start|stop|status|logs`, model-path configuration, and logs. See [the Termux server guide](docs/termux-server.md). The default endpoint is `http://127.0.0.1:8080/v1`.
+1. **Install the Termux CLI with one command:**
 
-2. **Install the app from Releases:** open [Releases](https://github.com/Adams-404/clearport/releases/latest) on the phone, download `clearport.apk`, tap it, and allow **Install unknown apps** for the browser or file manager.
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/Adams-404/clearport/main/scripts/install-termux.sh | bash
+   ```
 
-3. **Open Clearport → Settings.** Keep the URL `http://127.0.0.1:8080/v1`, set **Model** if your server requires one (llama.cpp/Ollama usually do), and tap **Test** until it says **Connected**.
+2. **Select your GGUF model and start it:**
 
-4. **Keep Termux alive.** Run `termux-wake-lock` before launching the server, and set Termux's battery usage to **Unrestricted** (Android Settings → Apps → Termux → Battery). Some OEMs (Samsung, Xiaomi, OnePlus) also kill background processes — disable their "phantom process killer" or battery saver for Termux.
+   ```bash
+   clearport local-models
+   clearport use ~/models/your-model.gguf
+   clearport start
+   ```
+
+   You can chat directly in Termux with `clearport chat`. The Android app is optional. The CLI guide covers all commands and configuration: [Termux CLI](docs/termux-cli.md).
+
+3. **If you want the Android app**, install it from [Releases](https://github.com/Adams-404/clearport/releases/latest), download `clearport.apk`, tap it, and allow **Install unknown apps** for the browser or file manager. In Settings, keep the server URL at `http://127.0.0.1:8080/v1`.
+
+4. **Keep Termux alive.** The CLI requests a wake lock when starting the server. Android and OEM background controls can still interfere. On some itel phones, disable **Foreground Intelligence** under **Special Functions → AI → Intelligent Management**, and keep Battery Saver off during long model sessions.
 
 If the model takes a while to load, the status dot can be red at first. Tap it to re-check, or just send a message once the server is ready.
 
