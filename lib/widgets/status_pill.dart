@@ -12,9 +12,19 @@ String statusHeadline(ServerStatus status, String model) {
     case ServerHealth.online:
       return model.isEmpty ? 'Connected' : 'Connected · $model';
     case ServerHealth.reachable:
-      return 'Server reachable';
+      return switch (status.issue) {
+        ServerIssue.unauthorized => 'Authentication failed',
+        ServerIssue.endpointNotFound => 'Endpoint not found',
+        ServerIssue.noModels => 'No models loaded',
+        ServerIssue.httpError => 'Server returned an error',
+        _ => 'Server reachable',
+      };
     case ServerHealth.offline:
-      return 'Offline';
+      return switch (status.issue) {
+        ServerIssue.connectionRefused => 'Connection refused',
+        ServerIssue.timeout => 'Connection timed out',
+        _ => 'Offline',
+      };
   }
 }
 

@@ -8,22 +8,35 @@ import 'stream_parser.dart';
 
 enum ServerHealth { unknown, checking, online, reachable, offline }
 
+enum ServerIssue {
+  none,
+  connectionRefused,
+  timeout,
+  unauthorized,
+  endpointNotFound,
+  noModels,
+  httpError,
+  unreachable,
+}
+
 class ServerStatus {
   const ServerStatus({
     required this.health,
     this.model,
     this.models = const [],
     this.message,
+    this.hint,
+    this.endpoint,
+    this.issue = ServerIssue.none,
   });
 
   final ServerHealth health;
-
-  /// First model reported by the server, if any.
   final String? model;
   final List<String> models;
-
-  /// Detail for the "reachable but not healthy" states.
   final String? message;
+  final String? hint;
+  final String? endpoint;
+  final ServerIssue issue;
 
   bool get isOnline => health == ServerHealth.online;
 }
@@ -68,10 +81,11 @@ class ChatApi {
   Uri get chatUri => Uri.parse('$baseUrl/chat/completions');
   Uri get modelsUri => Uri.parse('$baseUrl/models');
 
-  /// Probes `/models` to drive the status indicator.
+  /// Probes the OpenAI-compatible model endpoint and returns actionable diagnostics.
   Future<ServerStatus> checkStatus({
     Duration timeout = const Duration(seconds: 5),
   }) async {
+    final endpoint = _safeEndpoint(modelsUri);
     final client = HttpClient()..connectionTimeout = timeout;
     try {
       final request = await client.getUrl(modelsUri).timeout(timeout);
@@ -87,39 +101,93 @@ class ChatApi {
 
       if (response.statusCode == 200) {
         final models = _parseModels(body);
+        if (models.isEmpty) {
+          return ServerStatus(
+            health: ServerHealth.reachable,
+            issue: ServerIssue.noModels,
+            endpoint: endpoint,
+            message: 'The server responded, but it did not report any models.',
+            hint: 'Load a model in llama.cpp, then check that the server exposes '
+                'the OpenAI-compatible /v1/models endpoint.',
+          );
+        }
         return ServerStatus(
           health: ServerHealth.online,
           models: models,
-          model: models.isEmpty ? null : models.first,
+          model: models.first,
+          endpoint: endpoint,
         );
       }
       if (response.statusCode == 401 || response.statusCode == 403) {
         return ServerStatus(
           health: ServerHealth.reachable,
-          message: 'Server is up, but the API key was rejected.',
+          issue: ServerIssue.unauthorized,
+          endpoint: endpoint,
+          message: 'The server is reachable, but it rejected the API key.',
+          hint: 'Check the API key in Clearport, or remove it if your local '
+              'server does not require authentication.',
+        );
+      }
+      if (response.statusCode == 404) {
+        return ServerStatus(
+          health: ServerHealth.reachable,
+          issue: ServerIssue.endpointNotFound,
+          endpoint: endpoint,
+          message: 'The server responded, but the /models endpoint was not found.',
+          hint: 'For llama.cpp, start llama-server with its OpenAI-compatible '
+              'API and use the base URL ending in /v1, not /v1/models.',
         );
       }
       return ServerStatus(
         health: ServerHealth.reachable,
-        message:
-            'Server responded (HTTP ${response.statusCode}) '
-            'but /models is unavailable.',
+        issue: ServerIssue.httpError,
+        endpoint: endpoint,
+        message: 'The server responded with HTTP ${response.statusCode}.',
+        hint: 'Check the server log for the HTTP error and confirm that the '
+            'configured URL points to the API server.',
       );
     } on TimeoutException {
-      return const ServerStatus(
-        health: ServerHealth.offline,
-        message: 'The server did not respond in time.',
-      );
-    } on SocketException catch (error) {
       return ServerStatus(
         health: ServerHealth.offline,
-        message: _socketMessage(error),
+        issue: ServerIssue.timeout,
+        endpoint: endpoint,
+        message: 'The server did not respond within ${timeout.inSeconds} seconds.',
+        hint: 'Confirm the server is running and listening on the configured '
+            'port. Check that the phone and host can reach each other.',
+      );
+    } on SocketException catch (error) {
+      final refused = error.osError?.errorCode == 111 ||
+          error.osError?.errorCode == 61 ||
+          error.osError?.errorCode == 10061;
+      return ServerStatus(
+        health: ServerHealth.offline,
+        issue: refused ? ServerIssue.connectionRefused : ServerIssue.unreachable,
+        endpoint: endpoint,
+        message: refused
+            ? 'The connection was refused. Nothing is accepting connections at this address.'
+            : 'Could not reach the server. ${error.osError?.message ?? error.message}',
+        hint: refused
+            ? 'Start llama-server in Termux and confirm its port. If it runs on '
+                'another device, use that device’s LAN IP instead of 127.0.0.1.'
+            : 'Check the host address, port, Wi-Fi connection and firewall. '
+                'On Android, 127.0.0.1 refers to the phone itself.',
       );
     } on HttpException catch (error) {
-      return ServerStatus(health: ServerHealth.offline, message: error.message);
+      return ServerStatus(
+        health: ServerHealth.offline,
+        issue: ServerIssue.unreachable,
+        endpoint: endpoint,
+        message: 'The HTTP connection failed: ${error.message}',
+        hint: 'Check the server address and confirm that it speaks HTTP.',
+      );
     } finally {
       client.close(force: true);
     }
+  }
+
+  String _safeEndpoint(Uri uri) {
+    // Never display URL credentials, query parameters or fragments.
+    return uri.replace(userInfo: '', query: null, fragment: null).toString();
   }
 
   /// Streams a completion, calling [onDelta] with each text fragment.
