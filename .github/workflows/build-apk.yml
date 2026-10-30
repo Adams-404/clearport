@@ -41,6 +41,15 @@ jobs:
       - name: Build release APK
         run: flutter build apk --release
 
+      - name: Verify APK signature and package metadata
+        run: |
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
+          AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n 1)
+          test -n "$APKSIGNER"
+          test -n "$AAPT"
+          "$APKSIGNER" verify --verbose --print-certs build/app/outputs/flutter-apk/app-release.apk
+          "$AAPT" dump badging build/app/outputs/flutter-apk/app-release.apk | head -n 8
+
       - name: Rename artifact
         run: cp build/app/outputs/flutter-apk/app-release.apk clearport.apk
 
@@ -55,8 +64,8 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.1
-          name: Clearport v1.0.1
+          tag_name: v1.0.2
+          name: Clearport v1.0.2
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           overwrite_files: true
