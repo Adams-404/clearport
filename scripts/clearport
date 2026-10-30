@@ -2,9 +2,9 @@
 set -Eeuo pipefail
 
 VERSION="0.1.0"
-CONFIG_DIR="\${XDG_CONFIG_HOME:-$HOME/.config}/clearport"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/clearport"
 CONFIG_FILE="$CONFIG_DIR/server.conf"
-API_BASE="http://127.0.0.1:\${PORT:-8080}/v1"
+API_BASE="http://127.0.0.1:${PORT:-8080}/v1"
 SERVER_CMD="clearport-server"
 
 usage() {
@@ -53,10 +53,18 @@ api_ready() {
 
 select_default_model() {
   mkdir -p "$CONFIG_DIR"
-  local candidate
-  candidate="$(find "$HOME/models" -maxdepth 1 -type f -iname '*.gguf' 2>/dev/null | sort | head -n 1 || true)"
-  [ -n "$candidate" ] || die "No GGUF model found in ~/models. Put a .gguf file there, then run: clearport use ~/models/your-model.gguf"
-  printf 'MODEL_PATH=%q\n' "$candidate" > "$CONFIG_FILE"
+  local candidates candidate
+  mapfile -t candidates < <(find "$HOME/models" -maxdepth 1 -type f -iname '*.gguf' 2>/dev/null | sort)
+  case "${#candidates[@]}" in
+    0) die "No GGUF model found in ~/models. Put a .gguf file there, then run: clearport use ~/models/your-model.gguf" ;;
+    1) candidate="${candidates[0]}" ;;
+    *)
+      note "More than one GGUF model was found. Choose one explicitly:"
+      printf '  %s\n' "${candidates[@]}"
+      die "Run: clearport use <path-to-model.gguf>"
+      ;;
+  esac
+  printf 'MODEL_PATH=%q\nEXTRA_ARGS=%q\n' "$candidate" "-c 2048 -t 4" > "$CONFIG_FILE"
   chmod 600 "$CONFIG_FILE"
   note "Selected model: $candidate"
 }
@@ -68,6 +76,9 @@ start_server() {
     return 0
   fi
   if [ ! -f "$MODEL_PATH" ]; then
+    if [ -f "$CONFIG_FILE" ]; then
+      die "Configured model file does not exist: $MODEL_PATH. Select another with 'clearport use <path>'."
+    fi
     select_default_model
     load_config
   fi
@@ -168,7 +179,7 @@ chat() {
     else
       payload="$(jq -cn --argjson messages "$messages" '{messages:$messages,temperature:0.7,max_tokens:512,stream:false}')"
     fi
-    printf 'qwen> '
+    printf 'model> '
     response="$(curl -fsS --max-time 300 "$API_BASE/chat/completions" \
       -H 'Content-Type: application/json' -d "$payload" 2>&1)" || {
         printf '\nRequest failed:\n%s\n' "$response" >&2
@@ -197,7 +208,7 @@ stop_server() {
   fi
 }
 
-case "\${1:-help}" in
+case "${1:-help}" in
   start) start_server ;;
   chat) chat ;;
   models) show_models ;;
@@ -211,7 +222,7 @@ case "\${1:-help}" in
     mkdir -p "$CONFIG_DIR"
     touch "$CONFIG_FILE"
     chmod 600 "$CONFIG_FILE"
-    "\${EDITOR:-nano}" "$CONFIG_FILE"
+    "${EDITOR:-nano}" "$CONFIG_FILE"
     ;;
   version|-v|--version) printf 'Clearport CLI %s\n' "$VERSION" ;;
   help|-h|--help) usage ;;
