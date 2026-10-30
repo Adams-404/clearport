@@ -45,22 +45,14 @@ void main() {
     final store = _DelayedStore();
     final state = AppState(store: store);
     await state.load();
-    // ignore: avoid_print
-    print('PERSIST-DEBUG: load completed');
 
     state.updateSettings(const AppSettings(model: 'first-model'));
     state.flush();
-    // ignore: avoid_print
-    print('PERSIST-DEBUG: first flush requested');
 
     state.updateSettings(const AppSettings(model: 'second-model'));
     state.flush();
-    // ignore: avoid_print
-    print('PERSIST-DEBUG: second flush requested');
 
     await store.firstWriteStarted.future;
-    // ignore: avoid_print
-    print('PERSIST-DEBUG: first write started');
     expect(store.snapshots, hasLength(1));
     expect(
       (store.snapshots.first['settings'] as Map<String, dynamic>)['model'],
@@ -72,11 +64,7 @@ void main() {
     expect(store.secondWriteStarted.isCompleted, isFalse);
 
     store.releaseFirstWrite.complete();
-    // ignore: avoid_print
-    print('PERSIST-DEBUG: first write released');
     await store.secondWriteStarted.future;
-    // ignore: avoid_print
-    print('PERSIST-DEBUG: second write started');
 
     expect(store.maxConcurrentWrites, 1);
     expect(store.snapshots, hasLength(2));
