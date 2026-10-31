@@ -1,6 +1,6 @@
 # Termux companion: llama.cpp server
 
-> **Recommended setup:** use the Clearport CLI for one-command installation, server management, and direct terminal chat. See [Termux CLI](termux-cli.md). Install it with `curl -fsSL https://raw.githubusercontent.com/Adams-404/clearport/main/scripts/install-termux.sh | bash`. This page documents the lower-level `clearport-server` helper for existing/manual setups.
+> **Recommended setup:** use the Clearport CLI for one-command installation, server management, and direct terminal chat. See [Termux CLI](termux-cli.md). Install it with `curl -fsSL https://raw.githubusercontent.com/Adams-404/clearport-cli/main/install.sh | bash`. This page documents the lower-level `clearport-server` helper for existing/manual setups.
 
 Clearport is the chat client; this optional helper starts a separate `llama-server` process in Termux. It does not install llama.cpp, download a model, or run anything inside the Flutter app.
 
@@ -24,17 +24,17 @@ The exact installation method depends on the llama.cpp build you use. Do not dow
 
 ## 2. Install the launcher
 
-Clone the Clearport repository (or download the script) and copy the launcher into Termux's executable directory:
+Clone the CLI repository (which ships the launcher) and copy it into Termux's executable directory:
 
 ```sh
-git clone https://github.com/Adams-404/clearport.git
-cd clearport
+git clone https://github.com/Adams-404/clearport-cli.git
+cd clearport-cli
 mkdir -p "$PREFIX/bin"
 cp scripts/clearport-server "$PREFIX/bin/clearport-server"
 chmod 700 "$PREFIX/bin/clearport-server"
 ```
 
-If you already have a local clone, pull the latest `main` first. The script can also be run directly with `sh scripts/clearport-server`.
+If you already have a local clone, pull the latest `main` first. The script can also be run directly with `bash scripts/clearport-server`.
 
 ## 3. Configure your GGUF model
 

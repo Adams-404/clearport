@@ -6,7 +6,6 @@ import '../models/conversation.dart';
 import '../services/chat_api.dart';
 import '../state/app_state.dart';
 import '../theme.dart';
-import '../widgets/theme_art.dart';
 import '../widgets/app_scope.dart';
 import '../widgets/composer.dart';
 import '../widgets/empty_state.dart';
@@ -314,17 +313,6 @@ class _Header extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      if (palette.mark == ThemeMarkKind.terminal)
-                        Image.asset(
-                          'assets/branding/clearport-logo.png',
-                          width: 22,
-                          height: 22,
-                          fit: BoxFit.contain,
-                          semanticLabel: 'Clearport',
-                        )
-                      else
-                        const ThemeMark(size: 22),
-                      const SizedBox(width: 7),
                       Expanded(
                         child: Text(
                           conversation?.title ?? 'Clearport',

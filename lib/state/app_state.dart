@@ -512,7 +512,19 @@ class AppState extends ChangeNotifier {
     try {
       status = await _apiFactory(settings).checkStatus();
     } catch (error) {
-      status = ServerStatus(health: ServerHealth.offline, message: '$error');
+      // A build without dart:io (the web preview) cannot open a socket at all.
+      // Say that plainly instead of surfacing a platform exception.
+      final unsupported = error is UnsupportedError;
+      status = ServerStatus(
+        health: ServerHealth.offline,
+        issue: unsupported ? ServerIssue.unreachable : ServerIssue.none,
+        message: unsupported
+            ? 'This build cannot reach a local server.'
+            : 'The server check failed.',
+        hint: unsupported
+            ? 'Local inference needs the Android app or the Termux CLI.'
+            : '$error',
+      );
     } finally {
       _checking = false;
       _notify();

@@ -9,7 +9,7 @@ import '../theme.dart';
 /// Everything is painted rather than shipped as an asset: it stays crisp at any
 /// density, costs a few hundred bytes, and recolours with the palette.
 class ThemeMark extends StatelessWidget {
-  const ThemeMark({super.key, this.size = 58});
+  const ThemeMark({super.key, this.size = 76});
 
   final double size;
 
@@ -18,36 +18,32 @@ class ThemeMark extends StatelessWidget {
     final palette = context.palette;
     final mark = palette.mark;
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        gradient: mark == ThemeMarkKind.terminal
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  palette.accent,
-                  Color.lerp(palette.accent, const Color(0xFF0B7F6C), 0.45)!,
-                ],
-              )
-            : null,
-        color: mark == ThemeMarkKind.terminal ? null : palette.bg,
-        borderRadius: BorderRadius.circular(size * 0.29),
-        border: mark == ThemeMarkKind.terminal
-            ? null
-            : Border.all(color: palette.border),
-        boxShadow: [
-          BoxShadow(
-            color: palette.accent.withValues(alpha: 0.22),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+    // The terminal keeps its gradient tile; the seasonal marks stand alone,
+    // with no card or border behind them.
+    if (mark == ThemeMarkKind.terminal) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              palette.accent,
+              Color.lerp(palette.accent, const Color(0xFF0B7F6C), 0.45)!,
+            ],
           ),
-        ],
-      ),
-      alignment: Alignment.center,
-      child: switch (mark) {
-        ThemeMarkKind.terminal => Text(
+          borderRadius: BorderRadius.circular(size * 0.29),
+          boxShadow: [
+            BoxShadow(
+              color: palette.accent.withValues(alpha: 0.22),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        alignment: Alignment.center,
+        child: Text(
           '›_',
           style: TextStyle(
             fontFamily: 'monospace',
@@ -58,27 +54,37 @@ class ThemeMark extends StatelessWidget {
             color: Theme.of(context).colorScheme.onPrimary,
           ),
         ),
-        ThemeMarkKind.pumpkin => CustomPaint(
-          size: Size.square(size * 0.62),
-          painter: PumpkinPainter(
-            body: palette.accent,
-            face: palette.bg,
-            stem: const Color(0xFF4E7A3A),
-            glow: palette.accent,
-          ),
+      );
+    }
+
+    final glyph = switch (mark) {
+      ThemeMarkKind.pumpkin => CustomPaint(
+        size: Size.square(size),
+        painter: PumpkinPainter(
+          body: palette.accent,
+          face: palette.bg,
+          stem: const Color(0xFF4E7A3A),
+          glow: palette.accent,
         ),
-        ThemeMarkKind.snowflake => CustomPaint(
-          size: Size.square(size * 0.56),
-          painter: SnowflakePainter(color: palette.accent),
+      ),
+      ThemeMarkKind.snowflake => CustomPaint(
+        size: Size.square(size * 0.92),
+        painter: SnowflakePainter(color: palette.accent),
+      ),
+      ThemeMarkKind.marigold => CustomPaint(
+        size: Size.square(size * 0.92),
+        painter: MarigoldPainter(
+          petal: palette.accent,
+          centre: palette.secondary,
         ),
-        ThemeMarkKind.marigold => CustomPaint(
-          size: Size.square(size * 0.58),
-          painter: MarigoldPainter(
-            petal: palette.accent,
-            centre: palette.secondary,
-          ),
-        ),
-      },
+      ),
+      ThemeMarkKind.terminal => const SizedBox.shrink(),
+    };
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Center(child: glyph),
     );
   }
 }
@@ -144,35 +150,56 @@ class PumpkinPainter extends CustomPainter {
       Paint()..color = stem,
     );
 
-    // Carved eyes.
+    // Angry, slanted eyes: inner corners dropped low, outer corners high.
     final cut = Paint()..color = face;
-    for (final cx in [0.345, 0.655]) {
-      canvas.drawPath(
-        Path()
-          ..moveTo(s * (cx - 0.072), s * 0.45)
-          ..lineTo(s * (cx + 0.072), s * 0.45)
-          ..lineTo(s * cx, s * 0.555)
-          ..close(),
-        cut,
-      );
-    }
-
-    // Grin.
-    final grin = Paint()
-      ..color = face
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = s * 0.055
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
     canvas.drawPath(
       Path()
-        ..moveTo(s * 0.33, s * 0.70)
-        ..lineTo(s * 0.42, s * 0.635)
-        ..lineTo(s * 0.50, s * 0.705)
-        ..lineTo(s * 0.58, s * 0.635)
-        ..lineTo(s * 0.67, s * 0.70),
-      grin,
+        ..moveTo(s * 0.265, s * 0.455)
+        ..lineTo(s * 0.435, s * 0.385)
+        ..lineTo(s * 0.405, s * 0.505)
+        ..close(),
+      cut,
     );
+    canvas.drawPath(
+      Path()
+        ..moveTo(s * 0.735, s * 0.455)
+        ..lineTo(s * 0.565, s * 0.385)
+        ..lineTo(s * 0.595, s * 0.505)
+        ..close(),
+      cut,
+    );
+
+    // Nose.
+    canvas.drawPath(
+      Path()
+        ..moveTo(s * 0.5, s * 0.515)
+        ..lineTo(s * 0.462, s * 0.60)
+        ..lineTo(s * 0.538, s * 0.60)
+        ..close(),
+      cut,
+    );
+
+    // A wide, toothy grin: filled crescent, then teeth cut back in body colour.
+    canvas.drawPath(
+      Path()
+        ..moveTo(s * 0.295, s * 0.645)
+        ..quadraticBezierTo(s * 0.50, s * 0.665, s * 0.705, s * 0.645)
+        ..quadraticBezierTo(s * 0.665, s * 0.845, s * 0.50, s * 0.845)
+        ..quadraticBezierTo(s * 0.335, s * 0.845, s * 0.295, s * 0.645)
+        ..close(),
+      cut,
+    );
+    final tooth = Paint()..color = body;
+    for (final dx in [-0.085, 0.0, 0.085]) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(s * (0.5 + dx - 0.030), s * 0.658)
+          ..lineTo(s * (0.5 + dx + 0.030), s * 0.658)
+          ..lineTo(s * (0.5 + dx), s * 0.712)
+          ..close(),
+        tooth,
+      );
+    }
   }
 
   @override

@@ -15,7 +15,7 @@ If the model runs in **Termux on the same phone**, you need no computer, no `adb
 1. **Install the Termux CLI with one command:**
 
    ```bash
-   pkg install -y curl && curl -fsSL https://raw.githubusercontent.com/Adams-404/clearport/main/scripts/install-termux.sh | bash
+   pkg install -y curl && curl -fsSL https://raw.githubusercontent.com/Adams-404/clearport-cli/main/install.sh | bash
    ```
 
 2. **Select your GGUF model and start it:**
