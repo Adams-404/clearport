@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show ImageFilter;
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import '../services/conversation_transfer.dart';
 import '../theme.dart';
 import '../utils/format.dart';
 import 'app_scope.dart';
+import 'theme_art.dart';
 
 class HistorySheet extends StatefulWidget {
   const HistorySheet({super.key});
@@ -41,105 +43,200 @@ class _HistorySheetState extends State<HistorySheet> {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final state = AppScope.of(context);
+    final theme = Theme.of(context);
 
-    return Container(
-      height: MediaQuery.sizeOf(context).height * 0.66,
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(top: BorderSide(color: palette.border)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 8),
-          Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: palette.border,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 12, 6),
-            child: Row(
-              children: [
-                Text(
-                  'Chats',
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(tooltip: 'Import backup', onPressed: () => _import(context, state), icon: const Icon(Icons.file_download_outlined), visualDensity: VisualDensity.compact),
-                IconButton(tooltip: 'Export all chats', onPressed: () => _export(context, state.conversations), icon: const Icon(Icons.file_upload_outlined), visualDensity: VisualDensity.compact),
-                TextButton.icon(
-                  onPressed: () {
-                    state.newChat();
-                    Navigator.of(context).pop();
-                  },
-                  icon: const Icon(Icons.add_rounded, size: 17),
-                  label: const Text('New chat'),
-                  style: TextButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-            child: TextField(
-              controller: _search,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: 'Search chats and messages',
-                prefixIcon: const Icon(Icons.search_rounded, size: 19),
-                suffixIcon: _search.text.isEmpty ? null : IconButton(tooltip: 'Clear search', onPressed: () { _search.clear(); setState(() {}); }, icon: const Icon(Icons.close_rounded, size: 18)),
-                isDense: true, filled: true, fillColor: palette.bg,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: palette.border)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: palette.border)),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: palette.accent)),
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          height: MediaQuery.sizeOf(context).height * 0.70,
+          decoration: BoxDecoration(
+            color: palette.surface.withValues(alpha: 0.85),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border(
+              top: BorderSide(
+                color: palette.spooky
+                    ? palette.accent.withValues(alpha: 0.5)
+                    : palette.accent.withValues(alpha: 0.25),
+                width: 1.5,
               ),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.35),
+                blurRadius: 30,
+                offset: const Offset(0, -8),
+              ),
+            ],
           ),
-          Expanded(
-            child: ListenableBuilder(
-              listenable: state,
-              builder: (context, _) {
-                final conversations = searchConversations(state.history, _search.text);
-                if (conversations.isEmpty) {
-                  return Center(
-                    child: Text(
-                      _search.text.trim().isEmpty ? 'No conversations yet.' : 'No matching conversations.',
-                      style: TextStyle(fontSize: 13, color: palette.muted),
+          child: Stack(
+            children: [
+              if (palette.spooky)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: RepaintBoundary(
+                      child: CustomPaint(
+                        painter: SpiderWebPainter(
+                          web: Colors.white.withValues(alpha: 0.75),
+                          spider: palette.accent,
+                        ),
+                      ),
                     ),
-                  );
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-                  itemCount: conversations.length,
-                  itemBuilder: (context, index) {
-                    final conversation = conversations[index];
-                    return _ConversationTile(
-                      conversation: conversation,
-                      selected: conversation.id == state.activeId,
-                      onTap: () {
-                        state.selectConversation(conversation.id);
-                        Navigator.of(context).pop();
+                  ),
+                ),
+              Column(
+                children: [
+                  const SizedBox(height: 10),
+                  Container(
+                    width: 40,
+                    height: 4.5,
+                    decoration: BoxDecoration(
+                      color: palette.spooky
+                          ? palette.accent.withValues(alpha: 0.6)
+                          : palette.border,
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 14, 8),
+                    child: Row(
+                      children: [
+                        if (palette.spooky) ...[
+                          Icon(Icons.auto_awesome, size: 18, color: palette.accent),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          'Chats',
+                          style: theme.textTheme.titleMedium!.copyWith(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          tooltip: 'Import backup',
+                          onPressed: () => _import(context, state),
+                          icon: const Icon(Icons.file_download_outlined),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        IconButton(
+                          tooltip: 'Export all chats',
+                          onPressed: () => _export(context, state.conversations),
+                          icon: const Icon(Icons.file_upload_outlined),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        const SizedBox(width: 4),
+                        FilledButton.tonalIcon(
+                          onPressed: () {
+                            state.newChat();
+                            Navigator.of(context).pop();
+                          },
+                          icon: const Icon(Icons.add_rounded, size: 17),
+                          label: const Text('New chat'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: palette.spooky
+                                ? palette.accent.withValues(alpha: 0.22)
+                                : palette.accentSoft,
+                            foregroundColor: palette.accent,
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: palette.accent.withValues(alpha: 0.35),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                    child: TextField(
+                      controller: _search,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Search chats and messages',
+                        prefixIcon: const Icon(Icons.search_rounded, size: 19),
+                        suffixIcon: _search.text.isEmpty
+                            ? null
+                            : IconButton(
+                                tooltip: 'Clear search',
+                                onPressed: () {
+                                  _search.clear();
+                                  setState(() {});
+                                },
+                                icon: const Icon(Icons.close_rounded, size: 18),
+                              ),
+                        isDense: true,
+                        filled: true,
+                        fillColor: palette.bg.withValues(alpha: 0.70),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: palette.border),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: palette.border),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: palette.accent,
+                            width: 1.2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListenableBuilder(
+                      listenable: state,
+                      builder: (context, _) {
+                        final conversations =
+                            searchConversations(state.history, _search.text);
+                        if (conversations.isEmpty) {
+                          return Center(
+                            child: Text(
+                              _search.text.trim().isEmpty
+                                  ? 'No conversations yet.'
+                                  : 'No matching conversations.',
+                              style:
+                                  TextStyle(fontSize: 13, color: palette.muted),
+                            ),
+                          );
+                        }
+                        return ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(10, 4, 10, 16),
+                          itemCount: conversations.length,
+                          itemBuilder: (context, index) {
+                            final conversation = conversations[index];
+                            return _ConversationTile(
+                              conversation: conversation,
+                              selected: conversation.id == state.activeId,
+                              onTap: () {
+                                state.selectConversation(conversation.id);
+                                Navigator.of(context).pop();
+                              },
+                              onDelete: () =>
+                                  _confirmDelete(context, state, conversation),
+                              onExport: () => _export(context, [conversation]),
+                              onRename: () =>
+                                  _rename(context, state, conversation),
+                            );
+                          },
+                        );
                       },
-                      onDelete: () =>
-                          _confirmDelete(context, state, conversation),
-                      onExport: () => _export(context, [conversation]),
-                      onRename: () => _rename(context, state, conversation),
-                    );
-                  },
-                );
-              },
-            ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -284,15 +381,28 @@ class _ConversationTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 2.5),
       child: Material(
-        color: selected ? palette.accentSoft : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        color: selected
+            ? (palette.spooky
+                ? palette.accent.withValues(alpha: 0.18)
+                : palette.accentSoft)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: selected
+              ? BorderSide(
+                  color: palette.accent.withValues(alpha: 0.35),
+                  width: 1,
+                )
+              : BorderSide.none,
+        ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+            padding: const EdgeInsets.fromLTRB(14, 10, 4, 10),
             child: Row(
               children: [
                 Expanded(

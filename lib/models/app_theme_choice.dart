@@ -10,7 +10,7 @@ enum AppThemeChoice {
   dark('Dark', 'Deep navy, mint accent', Brightness.dark),
   amoled('AMOLED', 'True black, battery first', Brightness.dark),
   halloween('Haunted', 'Pure black, pumpkin, spiders', Brightness.dark),
-  christmas('Midwinter', 'Pine, gold and holly', Brightness.dark),
+  christmas('Midwinter', 'Frost, glacial blue and starlight', Brightness.dark),
   ofrenda('Ofrenda', 'Marigold and candlelight', Brightness.dark);
 
   const AppThemeChoice(this.label, this.description, this.brightness);

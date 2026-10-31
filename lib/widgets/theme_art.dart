@@ -18,42 +18,14 @@ class ThemeMark extends StatelessWidget {
     final palette = context.palette;
     final mark = palette.mark;
 
-    // The terminal keeps its gradient tile; the seasonal marks stand alone,
-    // with no card or border behind them.
+    // Default / non-seasonal themes render the official Clearport brand logo;
+    // seasonal themes render their custom painted marks.
     if (mark == ThemeMarkKind.terminal) {
-      return Container(
+      return Image.asset(
+        'assets/branding/clearport-logo.png',
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              palette.accent,
-              Color.lerp(palette.accent, const Color(0xFF0B7F6C), 0.45)!,
-            ],
-          ),
-          borderRadius: BorderRadius.circular(size * 0.29),
-          boxShadow: [
-            BoxShadow(
-              color: palette.accent.withValues(alpha: 0.22),
-              blurRadius: 18,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          '›_',
-          style: TextStyle(
-            fontFamily: 'monospace',
-            fontSize: size * 0.38,
-            height: 1,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1,
-            color: Theme.of(context).colorScheme.onPrimary,
-          ),
-        ),
+        fit: BoxFit.contain,
       );
     }
 

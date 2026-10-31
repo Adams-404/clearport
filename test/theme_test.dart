@@ -1,8 +1,11 @@
 import 'package:clearport/models/app_settings.dart';
 import 'package:clearport/models/app_theme_choice.dart';
 import 'package:clearport/services/chat_api.dart';
+import 'package:clearport/state/app_state.dart';
 import 'package:clearport/theme.dart';
+import 'package:clearport/widgets/app_scope.dart';
 import 'package:clearport/widgets/empty_state.dart';
+import 'package:clearport/widgets/history_sheet.dart';
 import 'package:clearport/widgets/theme_art.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -90,6 +93,25 @@ void main() {
     expect(palette.mark, ThemeMarkKind.terminal);
   });
 
+  test('midwinter is deep arctic blue with glacial ice accent and snowflake mark', () {
+    final palette = AppPalette.forChoice(AppThemeChoice.christmas);
+    expect(palette.bg, const Color(0xFF070D14));
+    expect(palette.accent, const Color(0xFF6AE4FF));
+    expect(palette.mark, ThemeMarkKind.snowflake);
+  });
+
+  testWidgets('default theme mark renders the brand logo asset', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: ThemeMark(),
+        ),
+      ),
+    );
+    final image = tester.widget<Image>(find.byType(Image));
+    expect((image.image as AssetImage).assetName, 'assets/branding/clearport-logo.png');
+  });
+
   testWidgets('haunted empty state paints webs and speaks spooky', (
     tester,
   ) async {
@@ -140,5 +162,27 @@ void main() {
         .map((paint) => paint.painter)
         .whereType<SpiderWebPainter>();
     expect(webPainters, isEmpty);
+  });
+
+  testWidgets('haunted history sheet paints spider webs and follows theme', (tester) async {
+    final state = AppState();
+    await state.load();
+    await tester.pumpWidget(
+      AppScope(
+        state: state,
+        child: MaterialApp(
+          theme: AppTheme.halloween(),
+          home: const Scaffold(body: HistorySheet()),
+        ),
+      ),
+    );
+
+    expect(find.text('Chats'), findsOneWidget);
+    expect(find.text('New chat'), findsOneWidget);
+    final webPainters = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .map((paint) => paint.painter)
+        .whereType<SpiderWebPainter>();
+    expect(webPainters, isNotEmpty);
   });
 }

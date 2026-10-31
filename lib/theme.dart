@@ -90,15 +90,15 @@ class AppPalette extends ThemeExtension<AppPalette> {
   );
 
   static const christmas = AppPalette(
-    bg: Color(0xFF04120C),
-    surface: Color(0xFF0A1A12),
-    surfaceAlt: Color(0xFF10241A),
-    border: Color(0xFF1B3A28),
-    muted: Color(0xFF8FA79A),
-    accent: Color(0xFFE8B84B),
-    accentSoft: Color(0x1FE8B84B),
-    secondary: Color(0xFF4FA97D),
-    codeBg: Color(0xFF061710),
+    bg: Color(0xFF070D14),
+    surface: Color(0xFF0D1724),
+    surfaceAlt: Color(0xFF132234),
+    border: Color(0xFF1E344D),
+    muted: Color(0xFF7F9DBE),
+    accent: Color(0xFF6AE4FF),
+    accentSoft: Color(0x1F6AE4FF),
+    secondary: Color(0xFFA6D0FF),
+    codeBg: Color(0xFF09111A),
     mark: ThemeMarkKind.snowflake,
   );
 
@@ -265,22 +265,22 @@ class AppTheme {
   static ThemeData christmas() => _build(
     brightness: Brightness.dark,
     palette: AppPalette.christmas,
-    fg: const Color(0xFFEDF3EE),
+    fg: const Color(0xFFEEF6FC),
     scheme: const ColorScheme(
       brightness: Brightness.dark,
-      primary: Color(0xFFE8B84B),
-      onPrimary: Color(0xFF1A1200),
-      primaryContainer: Color(0xFF3A2C07),
-      onPrimaryContainer: Color(0xFFFFEBB8),
-      secondary: Color(0xFF4FA97D),
-      onSecondary: Color(0xFF00160C),
+      primary: Color(0xFF6AE4FF),
+      onPrimary: Color(0xFF00222B),
+      primaryContainer: Color(0xFF083A48),
+      onPrimaryContainer: Color(0xFFC7F3FF),
+      secondary: Color(0xFFA6D0FF),
+      onSecondary: Color(0xFF001E3C),
       error: Color(0xFFFF6B6B),
       onError: Color(0xFF2A0606),
-      surface: Color(0xFF0A1A12),
-      onSurface: Color(0xFFEDF3EE),
-      outline: Color(0xFF23402F),
-      outlineVariant: Color(0xFF13291C),
-      surfaceContainerHighest: Color(0xFF10241A),
+      surface: Color(0xFF0D1724),
+      onSurface: Color(0xFFEEF6FC),
+      outline: Color(0xFF1E344D),
+      outlineVariant: Color(0xFF132234),
+      surfaceContainerHighest: Color(0xFF132234),
     ),
   );
 
@@ -378,6 +378,24 @@ class AppTheme {
       ),
       dividerTheme: DividerThemeData(color: palette.border, thickness: 1),
       iconTheme: IconThemeData(color: palette.muted, size: 22),
+      dialogTheme: DialogThemeData(
+        backgroundColor: palette.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: BorderSide(
+            color: palette.spooky
+                ? palette.accent.withValues(alpha: 0.45)
+                : palette.border,
+            width: 1.2,
+          ),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: palette.surfaceAlt,
@@ -425,14 +443,6 @@ class AppTheme {
         contentTextStyle: TextStyle(color: fg, fontSize: 13.5),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 0,
-      ),
-      bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: palette.surface,
-        modalBackgroundColor: palette.surface,
-        surfaceTintColor: Colors.transparent,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
       ),
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: palette.accent,
