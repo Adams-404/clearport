@@ -21,10 +21,14 @@ If the model runs in **Termux on the same phone**, you need no computer, no `adb
 2. **Select your GGUF model and start it:**
 
    ```bash
+   clearport pull gemma        # optional: fetch Gemma 3 1B (806 MB), checksum-verified
    clearport local-models
    clearport use ~/models/your-model.gguf
    clearport start
    ```
+
+   `clearport pull gemma-tiny` gets Gemma 3 270M (292 MB) instead, for phones with
+   less RAM. Any GGUF your server can load works — Gemma is just the tested default.
 
    You can chat directly in Termux with `clearport chat`. The Android app is optional. The CLI guide covers all commands and configuration: [Termux CLI](docs/termux-cli.md).
 
@@ -42,6 +46,8 @@ If the model takes a while to load, the status dot can be red at first. Tap it t
 - **Settings** — server URL, model, optional API key, system prompt, temperature, theme
 - **Light / dark / system** Material 3 themes with a small hand-rolled markdown renderer (code blocks, bold, italic, inline code)
 - **Copy** any reply; errors render inline with a retry action
+- **Themes** — Clean, Dark, AMOLED, Haunted, Midwinter and Ofrenda, each a full
+  palette rather than a tint; Haunted is true black with painted cobwebs
 - No accounts, no telemetry, no third-party services
 
 ## Requirements
@@ -184,6 +190,21 @@ The release build is signed with the debug keystore, which is fine for personal 
 Open the project folder, pick your device in the toolbar, and press **Run**.
 
 > On first launch the app has no conversations. Start typing, or tap a suggestion chip.
+
+## Themes
+
+Pick a theme in **Settings → Appearance**. Each one is a full `AppPalette`, so
+surfaces, borders, code blocks, selection and the empty-state mark all change together.
+
+| Theme | Look |
+| --- | --- |
+| **System** | Follows your phone's light/dark setting |
+| **Clean** | Ivory surfaces, mint accent |
+| **Dark** | Deep navy, mint accent |
+| **AMOLED** | True `#000000`, hairline borders, no elevation tint |
+| **Haunted** | Pure black, pumpkin light, cobwebs and one spider |
+| **Midwinter** | Pine, gold, snowflake mark |
+| **Ofrenda** | Plum, marigold and candlelight |
 
 ## Settings
 
