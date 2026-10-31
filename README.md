@@ -8,6 +8,8 @@ Built Android-first. The UI is platform-agnostic, so desktop is a `flutter creat
 
 > **Architecture:** The Android app is a lightweight chat frontend for an OpenAI-compatible server. The companion Termux CLI can manage a local llama.cpp server and provide interactive terminal chat, so the Android app is optional. Neither component bundles model weights.
 
+![Clearport in the Haunted theme](docs/screenshots/haunted.png)
+
 ## Everything on your phone (Termux)
 
 If the model runs in **Termux on the same phone**, you need no computer, no `adb`, and no LAN IP. `127.0.0.1` is exactly right. Android permits cleartext HTTP only to loopback hosts (`127.0.0.1` and `localhost`); HTTPS works for remote servers as usual. Remote plain-HTTP endpoints are blocked by Android's network security policy.
