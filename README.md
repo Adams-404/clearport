@@ -33,6 +33,7 @@ If the model runs in **Termux on the same phone**, you need no computer, no `adb
    less RAM. Any GGUF your server can load works — Gemma is just the tested default.
 
    You can chat directly in Termux with `clearport chat`. The Android app is optional. The CLI guide covers all commands and configuration: [Termux CLI](docs/termux-cli.md).
+   Backgrounding, process death and what the app does (and does not) promise: [lifecycle](docs/lifecycle.md).
 
 3. **If you want the Android app**, install it from [Releases](https://github.com/Adams-404/clearport/releases/latest), download `clearport.apk`, tap it, and allow **Install unknown apps** for the browser or file manager. In Settings, keep the server URL at `http://127.0.0.1:8080/v1`.
 
