@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/app_settings.dart';
+import '../models/app_theme_choice.dart';
 import '../models/chat_message.dart';
 import '../models/conversation.dart';
 import '../services/chat_api.dart';
@@ -33,7 +34,9 @@ class AppState extends ChangeNotifier {
   final ChatApi Function(AppSettings settings) _apiFactory;
 
   AppSettings settings = const AppSettings();
-  final ValueNotifier<ThemeMode> themeMode = ValueNotifier(ThemeMode.system);
+  final ValueNotifier<AppThemeChoice> theme = ValueNotifier(
+    AppThemeChoice.system,
+  );
   final List<Conversation> conversations = [];
   String? activeId;
 
@@ -141,7 +144,7 @@ class AppState extends ChangeNotifier {
         !conversations.any((conversation) => conversation.id == activeId)) {
       activeId = conversations.first.id;
     }
-    themeMode.value = settings.themeMode;
+    theme.value = settings.theme;
     if (recoveredInterruptedGeneration) {
       _schedulePersist(force: true);
     }
@@ -491,7 +494,7 @@ class AppState extends ChangeNotifier {
     final connectionChanged =
         next.baseUrl != settings.baseUrl || next.apiKey != settings.apiKey;
     settings = next;
-    if (themeMode.value != next.themeMode) themeMode.value = next.themeMode;
+    if (theme.value != next.theme) theme.value = next.theme;
     if (connectionChanged) {
       status = const ServerStatus(health: ServerHealth.unknown);
     }
@@ -598,7 +601,7 @@ class AppState extends ChangeNotifier {
     _flushTimer?.cancel();
     _pollTimer?.cancel();
     _lifecycle?.dispose();
-    themeMode.dispose();
+    theme.dispose();
     super.dispose();
   }
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'app_theme_choice.dart';
 
 /// Everything the user can change in Settings.
 class AppSettings {
@@ -10,7 +10,7 @@ class AppSettings {
     this.temperature = 0.7,
     this.maxOutputTokens,
     this.topP,
-    this.themeMode = ThemeMode.system,
+    this.theme = AppThemeChoice.system,
   });
 
   static const defaultBaseUrl = 'http://127.0.0.1:8080/v1';
@@ -35,7 +35,7 @@ class AppSettings {
   /// Optional nucleus-sampling probability (0.0–1.0).
   final double? topP;
 
-  final ThemeMode themeMode;
+  final AppThemeChoice theme;
 
   /// Trims trailing slashes and accepts a full chat-completions URL pasted
   /// from the server docs, so users don't have to know the exact shape.
@@ -69,7 +69,7 @@ class AppSettings {
     bool clearMaxOutputTokens = false,
     double? topP,
     bool clearTopP = false,
-    ThemeMode? themeMode,
+    AppThemeChoice? theme,
   }) => AppSettings(
     baseUrl: baseUrl ?? this.baseUrl,
     model: model ?? this.model,
@@ -80,7 +80,7 @@ class AppSettings {
         ? null
         : maxOutputTokens ?? this.maxOutputTokens,
     topP: clearTopP ? null : topP ?? this.topP,
-    themeMode: themeMode ?? this.themeMode,
+    theme: theme ?? this.theme,
   );
 
   Map<String, dynamic> toJson() => {
@@ -90,7 +90,7 @@ class AppSettings {
     'temperature': temperature,
     'maxOutputTokens': maxOutputTokens,
     'topP': topP,
-    'themeMode': themeMode.name,
+    'theme': theme.name,
   };
 
   static int? _readMaxOutputTokens(Object? value) {
@@ -112,9 +112,8 @@ class AppSettings {
     temperature: (json['temperature'] as num?)?.toDouble() ?? 0.7,
     maxOutputTokens: _readMaxOutputTokens(json['maxOutputTokens']),
     topP: _readTopP(json['topP']),
-    themeMode: ThemeMode.values.firstWhere(
-      (mode) => mode.name == json['themeMode'],
-      orElse: () => ThemeMode.system,
-    ),
+    theme: json['theme'] != null
+        ? AppThemeChoice.fromName(json['theme'])
+        : AppThemeChoice.fromLegacyThemeMode(json['themeMode']),
   );
 }

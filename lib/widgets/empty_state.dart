@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../services/chat_api.dart';
 import '../theme.dart';
 import 'status_pill.dart';
+import 'theme_art.dart';
 
 class EmptyState extends StatelessWidget {
   const EmptyState({
@@ -35,115 +36,91 @@ class EmptyState extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: math.max(0, constraints.maxHeight - 56),
-            ),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const _LogoMark(),
-                    const SizedBox(height: 18),
-                    Text(
-                      'Clearport',
-                      style: theme.textTheme.titleLarge!.copyWith(
-                        fontSize: 26,
-                        letterSpacing: -0.7,
+        return Stack(
+          children: [
+            if (palette.spooky)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: RepaintBoundary(
+                    child: CustomPaint(
+                      painter: SpiderWebPainter(
+                        web: Colors.white,
+                        spider: palette.accent,
                       ),
                     ),
-                    const SizedBox(height: 7),
-                    Text(
-                      'A quiet chat with your local models.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: palette.muted),
-                    ),
-                    const SizedBox(height: 28),
-                    _ConnectionCard(
-                      status: status,
-                      baseUrl: baseUrl,
-                      model: model,
-                      onRefresh: onRefresh,
-                    ),
-                    const SizedBox(height: 24),
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 8,
-                      runSpacing: 8,
+                  ),
+                ),
+              ),
+            SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: math.max(0, constraints.maxHeight - 56),
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 360),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        for (final suggestion in _suggestions)
-                          ActionChip(
-                            label: Text(suggestion.$1),
-                            onPressed: () => onSuggestion(suggestion.$2),
-                            backgroundColor: palette.surface,
-                            side: BorderSide(color: palette.border),
-                            shape: const StadiumBorder(),
-                            labelStyle: TextStyle(
-                              fontSize: 12.5,
-                              color: theme.colorScheme.onSurface,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 2,
-                            ),
-                            visualDensity: VisualDensity.compact,
+                        const ThemeMark(),
+                        const SizedBox(height: 18),
+                        Text(
+                          'Clearport',
+                          style: theme.textTheme.titleLarge!.copyWith(
+                            fontSize: 26,
+                            letterSpacing: -0.7,
                           ),
+                        ),
+                        const SizedBox(height: 7),
+                        Text(
+                          palette.spooky
+                              ? 'Something is listening on 127.0.0.1.'
+                              : 'A quiet chat with your local models.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: palette.muted),
+                        ),
+                        const SizedBox(height: 28),
+                        _ConnectionCard(
+                          status: status,
+                          baseUrl: baseUrl,
+                          model: model,
+                          onRefresh: onRefresh,
+                        ),
+                        const SizedBox(height: 24),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final suggestion in _suggestions)
+                              ActionChip(
+                                label: Text(suggestion.$1),
+                                onPressed: () => onSuggestion(suggestion.$2),
+                                backgroundColor: palette.surface,
+                                side: BorderSide(color: palette.border),
+                                shape: const StadiumBorder(),
+                                labelStyle: TextStyle(
+                                  fontSize: 12.5,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 2,
+                                ),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         );
       },
-    );
-  }
-}
-
-class _LogoMark extends StatelessWidget {
-  const _LogoMark();
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Container(
-      width: 58,
-      height: 58,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            palette.accent,
-            Color.lerp(palette.accent, const Color(0xFF0B7F6C), 0.45)!,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(17),
-        boxShadow: [
-          BoxShadow(
-            color: palette.accent.withValues(alpha: 0.22),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        '›_',
-        style: TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 22,
-          height: 1,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1,
-          color: Theme.of(context).colorScheme.onPrimary,
-        ),
-      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/app_settings.dart';
+import '../models/app_theme_choice.dart';
 import '../services/chat_api.dart';
 import '../state/app_state.dart';
 import '../theme.dart';
@@ -65,7 +66,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     bool clearMaxOutputTokens = false,
     double? topP,
     bool clearTopP = false,
-    ThemeMode? themeMode,
+    AppThemeChoice? theme,
   }) {
     final state = _state;
     if (state == null) return;
@@ -80,7 +81,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         clearMaxOutputTokens: clearMaxOutputTokens,
         topP: topP,
         clearTopP: clearTopP,
-        themeMode: themeMode,
+        theme: theme,
       ),
     );
   }
@@ -418,32 +419,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const _SectionLabel('Appearance'),
-          _Card(
-            child: SizedBox(
-              width: double.infinity,
-              child: SegmentedButton<ThemeMode>(
-                expandedInsets: EdgeInsets.zero,
-                showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment(value: ThemeMode.system, label: Text('System')),
-                  ButtonSegment(value: ThemeMode.light, label: Text('Light')),
-                  ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
-                ],
-                selected: {state?.settings.themeMode ?? ThemeMode.system},
-                onSelectionChanged: (selection) =>
-                    _apply(themeMode: selection.first),
-                style: SegmentedButton.styleFrom(
-                  foregroundColor: palette.muted,
-                  selectedForegroundColor: palette.accent,
-                  selectedBackgroundColor: palette.accentSoft,
-                  side: BorderSide(color: palette.border),
-                  textStyle: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
+          _ThemePicker(
+            selected: state?.settings.theme ?? AppThemeChoice.system,
+            onSelected: (choice) => _apply(theme: choice),
           ),
           const _SectionLabel('Data'),
           _Card(
@@ -615,6 +593,143 @@ class _Field extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// A grid of theme swatches. Scales past three options, unlike a segmented
+/// button, and previews each palette before the user commits to it.
+class _ThemePicker extends StatelessWidget {
+  const _ThemePicker({required this.selected, required this.onSelected});
+
+  final AppThemeChoice selected;
+  final ValueChanged<AppThemeChoice> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 10.0;
+        final columns = constraints.maxWidth > 430 ? 3 : 2;
+        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (final choice in AppThemeChoice.values)
+              SizedBox(
+                width: width,
+                child: _ThemeTile(
+                  choice: choice,
+                  selected: choice == selected,
+                  onTap: () => onSelected(choice),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ThemeTile extends StatelessWidget {
+  const _ThemeTile({
+    required this.choice,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AppThemeChoice choice;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final preview = choice == AppThemeChoice.system
+        ? AppPalette.dark
+        : AppPalette.forChoice(choice);
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '${choice.label} theme',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          padding: const EdgeInsets.fromLTRB(11, 11, 11, 12),
+          decoration: BoxDecoration(
+            color: palette.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? palette.accent : palette.border,
+              width: selected ? 1.4 : 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  _Swatch(color: preview.bg, border: palette.border),
+                  const SizedBox(width: 5),
+                  _Swatch(color: preview.accent),
+                  const SizedBox(width: 5),
+                  _Swatch(color: preview.secondary),
+                  const Spacer(),
+                  if (selected)
+                    Icon(
+                      Icons.check_rounded,
+                      size: 15,
+                      color: palette.accent,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 9),
+              Text(
+                choice.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                choice.description,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 10.5, color: palette.muted),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Swatch extends StatelessWidget {
+  const _Swatch({required this.color, this.border});
+
+  final Color color;
+  final Color? border;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 15,
+      height: 15,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: border ?? color, width: 1),
+      ),
     );
   }
 }

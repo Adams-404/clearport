@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clearport/models/app_settings.dart';
+import 'package:clearport/models/app_theme_choice.dart';
 import 'package:clearport/models/chat_message.dart';
 import 'package:clearport/services/chat_api.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -120,7 +120,7 @@ void main() {
       temperature: 0.2,
       maxOutputTokens: 128,
       topP: 0.9,
-      themeMode: ThemeMode.dark,
+      theme: AppThemeChoice.dark,
     );
 
     final restored = AppSettings.fromJson(
@@ -135,7 +135,7 @@ void main() {
     expect(restored.temperature, settings.temperature);
     expect(restored.maxOutputTokens, settings.maxOutputTokens);
     expect(restored.topP, settings.topP);
-    expect(restored.themeMode, ThemeMode.dark);
+    expect(restored.theme, AppThemeChoice.dark);
   });
 
   test('Android allows cleartext only for loopback hosts', () async {

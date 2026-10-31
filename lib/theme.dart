@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'models/app_theme_choice.dart';
+
+/// The glyph shown in the empty state, per theme.
+enum ThemeMarkKind { terminal, pumpkin, snowflake, marigold }
+
 /// The app's custom surface colours, layered on top of [ColorScheme].
 @immutable
 class AppPalette extends ThemeExtension<AppPalette> {
@@ -11,7 +16,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.muted,
     required this.accent,
     required this.accentSoft,
+    required this.secondary,
     required this.codeBg,
+    this.mark = ThemeMarkKind.terminal,
   });
 
   final Color bg;
@@ -21,7 +28,14 @@ class AppPalette extends ThemeExtension<AppPalette> {
   final Color muted;
   final Color accent;
   final Color accentSoft;
+  final Color secondary;
   final Color codeBg;
+
+  /// Which seasonal mark the empty state draws. [ThemeMarkKind.pumpkin] also
+  /// turns on the spider webs.
+  final ThemeMarkKind mark;
+
+  bool get spooky => mark == ThemeMarkKind.pumpkin;
 
   static const dark = AppPalette(
     bg: Color(0xFF0B0E12),
@@ -31,6 +45,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     muted: Color(0xFF8A94A6),
     accent: Color(0xFF5FD6B4),
     accentSoft: Color(0x1F5FD6B4),
+    secondary: Color(0xFF9BB4FF),
     codeBg: Color(0xFF0D1117),
   );
 
@@ -42,8 +57,73 @@ class AppPalette extends ThemeExtension<AppPalette> {
     muted: Color(0xFF6B7484),
     accent: Color(0xFF0E9F86),
     accentSoft: Color(0x140E9F86),
+    secondary: Color(0xFF3D5AFE),
     codeBg: Color(0xFFF4F6F9),
   );
+
+  /// True black. On an OLED panel every pixel that is off costs nothing, so
+  /// surfaces stay black and separation comes from hairlines, not elevation.
+  static const amoled = AppPalette(
+    bg: Color(0xFF000000),
+    surface: Color(0xFF000000),
+    surfaceAlt: Color(0xFF0C0C0E),
+    border: Color(0xFF1E1E22),
+    muted: Color(0xFF8B8B94),
+    accent: Color(0xFF7CE0C3),
+    accentSoft: Color(0x1A7CE0C3),
+    secondary: Color(0xFFA9C1FF),
+    codeBg: Color(0xFF08080A),
+  );
+
+  /// Haunted: pure black ground, pumpkin light, one spider on the web.
+  static const halloween = AppPalette(
+    bg: Color(0xFF000000),
+    surface: Color(0xFF07060A),
+    surfaceAlt: Color(0xFF100D16),
+    border: Color(0xFF221C2C),
+    muted: Color(0xFF8E879B),
+    accent: Color(0xFFFF7A18),
+    accentSoft: Color(0x1FFF7A18),
+    secondary: Color(0xFFB07CFF),
+    codeBg: Color(0xFF08060C),
+    mark: ThemeMarkKind.pumpkin,
+  );
+
+  static const christmas = AppPalette(
+    bg: Color(0xFF04120C),
+    surface: Color(0xFF0A1A12),
+    surfaceAlt: Color(0xFF10241A),
+    border: Color(0xFF1B3A28),
+    muted: Color(0xFF8FA79A),
+    accent: Color(0xFFE8B84B),
+    accentSoft: Color(0x1FE8B84B),
+    secondary: Color(0xFF4FA97D),
+    codeBg: Color(0xFF061710),
+    mark: ThemeMarkKind.snowflake,
+  );
+
+  static const ofrenda = AppPalette(
+    bg: Color(0xFF12060F),
+    surface: Color(0xFF1C0B17),
+    surfaceAlt: Color(0xFF261022),
+    border: Color(0xFF3A1B32),
+    muted: Color(0xFFB79AA8),
+    accent: Color(0xFFFFB020),
+    accentSoft: Color(0x1FFFB020),
+    secondary: Color(0xFFE0559A),
+    codeBg: Color(0xFF16080F),
+    mark: ThemeMarkKind.marigold,
+  );
+
+  static AppPalette forChoice(AppThemeChoice choice) => switch (choice) {
+    AppThemeChoice.system => dark,
+    AppThemeChoice.light => light,
+    AppThemeChoice.dark => dark,
+    AppThemeChoice.amoled => amoled,
+    AppThemeChoice.halloween => halloween,
+    AppThemeChoice.christmas => christmas,
+    AppThemeChoice.ofrenda => ofrenda,
+  };
 
   @override
   AppPalette copyWith({
@@ -54,7 +134,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? muted,
     Color? accent,
     Color? accentSoft,
+    Color? secondary,
     Color? codeBg,
+    ThemeMarkKind? mark,
   }) => AppPalette(
     bg: bg ?? this.bg,
     surface: surface ?? this.surface,
@@ -63,7 +145,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
     muted: muted ?? this.muted,
     accent: accent ?? this.accent,
     accentSoft: accentSoft ?? this.accentSoft,
+    secondary: secondary ?? this.secondary,
     codeBg: codeBg ?? this.codeBg,
+    mark: mark ?? this.mark,
   );
 
   @override
@@ -77,7 +161,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
       muted: Color.lerp(muted, other.muted, t)!,
       accent: Color.lerp(accent, other.accent, t)!,
       accentSoft: Color.lerp(accentSoft, other.accentSoft, t)!,
+      secondary: Color.lerp(secondary, other.secondary, t)!,
       codeBg: Color.lerp(codeBg, other.codeBg, t)!,
+      mark: t < 0.5 ? mark : other.mark,
     );
   }
 }
@@ -131,6 +217,110 @@ class AppTheme {
       surfaceContainerHighest: Color(0xFFF1F3F7),
     ),
   );
+
+  static ThemeData amoled() => _build(
+    brightness: Brightness.dark,
+    palette: AppPalette.amoled,
+    fg: const Color(0xFFEDEDF0),
+    scheme: const ColorScheme(
+      brightness: Brightness.dark,
+      primary: Color(0xFF7CE0C3),
+      onPrimary: Color(0xFF00130E),
+      primaryContainer: Color(0xFF0A2A22),
+      onPrimaryContainer: Color(0xFFCFF7EB),
+      secondary: Color(0xFFA9C1FF),
+      onSecondary: Color(0xFF06122E),
+      error: Color(0xFFFF7B72),
+      onError: Color(0xFF2A0A08),
+      surface: Color(0xFF000000),
+      onSurface: Color(0xFFEDEDF0),
+      outline: Color(0xFF232327),
+      outlineVariant: Color(0xFF141417),
+      surfaceContainerHighest: Color(0xFF0C0C0E),
+    ),
+  );
+
+  static ThemeData halloween() => _build(
+    brightness: Brightness.dark,
+    palette: AppPalette.halloween,
+    fg: const Color(0xFFF4EFE7),
+    scheme: const ColorScheme(
+      brightness: Brightness.dark,
+      primary: Color(0xFFFF7A18),
+      onPrimary: Color(0xFF1A0A00),
+      primaryContainer: Color(0xFF3A1A05),
+      onPrimaryContainer: Color(0xFFFFD9BC),
+      secondary: Color(0xFFB07CFF),
+      onSecondary: Color(0xFF150029),
+      error: Color(0xFFFF5C5C),
+      onError: Color(0xFF2A0606),
+      surface: Color(0xFF000000),
+      onSurface: Color(0xFFF4EFE7),
+      outline: Color(0xFF2A2333),
+      outlineVariant: Color(0xFF17121D),
+      surfaceContainerHighest: Color(0xFF100D16),
+    ),
+  );
+
+  static ThemeData christmas() => _build(
+    brightness: Brightness.dark,
+    palette: AppPalette.christmas,
+    fg: const Color(0xFFEDF3EE),
+    scheme: const ColorScheme(
+      brightness: Brightness.dark,
+      primary: Color(0xFFE8B84B),
+      onPrimary: Color(0xFF1A1200),
+      primaryContainer: Color(0xFF3A2C07),
+      onPrimaryContainer: Color(0xFFFFEBB8),
+      secondary: Color(0xFF4FA97D),
+      onSecondary: Color(0xFF00160C),
+      error: Color(0xFFFF6B6B),
+      onError: Color(0xFF2A0606),
+      surface: Color(0xFF0A1A12),
+      onSurface: Color(0xFFEDF3EE),
+      outline: Color(0xFF23402F),
+      outlineVariant: Color(0xFF13291C),
+      surfaceContainerHighest: Color(0xFF10241A),
+    ),
+  );
+
+  static ThemeData ofrenda() => _build(
+    brightness: Brightness.dark,
+    palette: AppPalette.ofrenda,
+    fg: const Color(0xFFF6E9EF),
+    scheme: const ColorScheme(
+      brightness: Brightness.dark,
+      primary: Color(0xFFFFB020),
+      onPrimary: Color(0xFF1A1000),
+      primaryContainer: Color(0xFF3A2606),
+      onPrimaryContainer: Color(0xFFFFE3AE),
+      secondary: Color(0xFFE0559A),
+      onSecondary: Color(0xFF24000F),
+      error: Color(0xFFFF6B8B),
+      onError: Color(0xFF2A0610),
+      surface: Color(0xFF1C0B17),
+      onSurface: Color(0xFFF6E9EF),
+      outline: Color(0xFF43213A),
+      outlineVariant: Color(0xFF2B1222),
+      surfaceContainerHighest: Color(0xFF261022),
+    ),
+  );
+
+  /// Resolves a choice to a theme. [platformBrightness] is only consulted for
+  /// [AppThemeChoice.system].
+  static ThemeData forChoice(
+    AppThemeChoice choice, {
+    Brightness platformBrightness = Brightness.dark,
+  }) => switch (choice) {
+    AppThemeChoice.system =>
+      platformBrightness == Brightness.dark ? dark() : light(),
+    AppThemeChoice.light => light(),
+    AppThemeChoice.dark => dark(),
+    AppThemeChoice.amoled => amoled(),
+    AppThemeChoice.halloween => halloween(),
+    AppThemeChoice.christmas => christmas(),
+    AppThemeChoice.ofrenda => ofrenda(),
+  };
 
   static ThemeData _build({
     required Brightness brightness,

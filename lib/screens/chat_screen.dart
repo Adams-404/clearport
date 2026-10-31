@@ -6,6 +6,7 @@ import '../models/conversation.dart';
 import '../services/chat_api.dart';
 import '../state/app_state.dart';
 import '../theme.dart';
+import '../widgets/theme_art.dart';
 import '../widgets/app_scope.dart';
 import '../widgets/composer.dart';
 import '../widgets/empty_state.dart';
@@ -132,8 +133,14 @@ class _ChatScreenState extends State<ChatScreen> {
           decoration: const InputDecoration(hintText: 'Your message'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, controller.text), child: const Text('Send')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, controller.text),
+            child: const Text('Send'),
+          ),
         ],
       ),
     );
@@ -307,13 +314,16 @@ class _Header extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Image.asset(
-                        'assets/branding/clearport-logo.png',
-                        width: 22,
-                        height: 22,
-                        fit: BoxFit.contain,
-                        semanticLabel: 'Clearport',
-                      ),
+                      if (palette.mark == ThemeMarkKind.terminal)
+                        Image.asset(
+                          'assets/branding/clearport-logo.png',
+                          width: 22,
+                          height: 22,
+                          fit: BoxFit.contain,
+                          semanticLabel: 'Clearport',
+                        )
+                      else
+                        const ThemeMark(size: 22),
                       const SizedBox(width: 7),
                       Expanded(
                         child: Text(
@@ -441,8 +451,8 @@ class _JumpToLatest extends StatelessWidget {
                     width: 48,
                     height: 48,
                     child: Icon(
-                  Icons.arrow_downward_rounded,
-                  size: 18,
+                      Icons.arrow_downward_rounded,
+                      size: 18,
                       color: palette.muted,
                     ),
                   ),
