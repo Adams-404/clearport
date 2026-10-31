@@ -8,7 +8,17 @@ Built Android-first. The UI is platform-agnostic, so desktop is a `flutter creat
 
 > **Architecture:** The Android app is a lightweight chat frontend for an OpenAI-compatible server. The companion Termux CLI can manage a local llama.cpp server and provide interactive terminal chat, so the Android app is optional. Neither component bundles model weights.
 
-![Clearport in the Haunted theme](docs/screenshots/haunted.png)
+<p align="center">
+  <img src="docs/screenshots/haunted.png" width="45%" alt="Clearport in Haunted theme" />
+  <img src="docs/screenshots/aeroplane-mode.png" width="45%" alt="Aeroplane mode streaming tokens" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/Adams-404/clearport/releases/download/v1.0.4/clearport-demo.mp4">
+    <img src="docs/media/clearport-streaming.gif" width="360" alt="Watch Demo Video" /><br>
+    🎬 <b>Watch 90-second Offline Aeroplane-Mode Walkthrough (MP4)</b>
+  </a>
+</p>
 
 ## Everything on your phone (Termux)
 
