@@ -169,6 +169,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   autocorrect: false,
                   onChanged: (value) => _apply(model: value),
                 ),
+                if (state != null) ...[
+                  const SizedBox(height: 10),
+                  _ModelPicker(
+                    state: state,
+                    selected: _model.text.trim(),
+                    onSelect: (id) {
+                      _model.text = id;
+                      _apply(model: id);
+                      setState(() {});
+                    },
+                  ),
+                ],
                 const SizedBox(height: 16),
                 _Field(
                   label: 'API key',
@@ -512,7 +524,10 @@ class _Card extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: palette.border),
       ),
-      child: child,
+      // A transparent Material keeps list tiles inside the card able to paint
+      // their ink; without it Flutter asserts that splashes would be hidden by
+      // the card's background.
+      child: Material(type: MaterialType.transparency, child: child),
     );
   }
 }
@@ -681,11 +696,7 @@ class _ThemeTile extends StatelessWidget {
                   _Swatch(color: preview.secondary),
                   const Spacer(),
                   if (selected)
-                    Icon(
-                      Icons.check_rounded,
-                      size: 15,
-                      color: palette.accent,
-                    ),
+                    Icon(Icons.check_rounded, size: 15, color: palette.accent),
                 ],
               ),
               const SizedBox(height: 9),
@@ -730,6 +741,106 @@ class _Swatch extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: border ?? color, width: 1),
       ),
+    );
+  }
+}
+
+/// Lists the models the server reports, so the ID does not have to be typed.
+///
+/// Manual entry stays available: some servers expose no model list at all, and
+/// a proxy may accept an alias that is not advertised.
+class _ModelPicker extends StatelessWidget {
+  const _ModelPicker({
+    required this.state,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  final AppState state;
+  final String selected;
+  final ValueChanged<String> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return ListenableBuilder(
+      listenable: state,
+      builder: (context, _) {
+        final status = state.status;
+        final checking = status.health == ServerHealth.checking;
+        final models = status.models;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Available on the server',
+                  style: TextStyle(fontSize: 12.5, color: palette.muted),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: checking ? null : () => state.refreshStatus(),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                  child: checking
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Check', style: TextStyle(fontSize: 12.5)),
+                ),
+              ],
+            ),
+            if (models.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  checking
+                      ? 'Asking the server…'
+                      : status.health == ServerHealth.offline
+                      ? 'No server reachable. Type the model ID above, or start '
+                            'your server and check again.'
+                      : 'The server reported no models. Type the ID above.',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    height: 1.35,
+                    color: palette.muted,
+                  ),
+                ),
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final id in models)
+                    ChoiceChip(
+                      label: Text(id, style: const TextStyle(fontSize: 12)),
+                      selected: id == selected,
+                      onSelected: (_) => onSelect(id),
+                      showCheckmark: false,
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: palette.surface,
+                      selectedColor: palette.accent.withValues(alpha: 0.18),
+                      side: BorderSide(
+                        color: id == selected ? palette.accent : palette.border,
+                      ),
+                      labelStyle: TextStyle(
+                        color: id == selected
+                            ? palette.accent
+                            : Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                ],
+              ),
+          ],
+        );
+      },
     );
   }
 }
