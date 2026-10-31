@@ -107,7 +107,8 @@ class ChatApi {
             issue: ServerIssue.noModels,
             endpoint: endpoint,
             message: 'The server responded, but it did not report any models.',
-            hint: 'Load a model in llama.cpp, then check that the server exposes '
+            hint:
+                'Load a model in llama.cpp, then check that the server exposes '
                 'the OpenAI-compatible /v1/models endpoint.',
           );
         }
@@ -124,7 +125,8 @@ class ChatApi {
           issue: ServerIssue.unauthorized,
           endpoint: endpoint,
           message: 'The server is reachable, but it rejected the API key.',
-          hint: 'Check the API key in Clearport, or remove it if your local '
+          hint:
+              'Check the API key in Clearport, or remove it if your local '
               'server does not require authentication.',
         );
       }
@@ -133,8 +135,10 @@ class ChatApi {
           health: ServerHealth.reachable,
           issue: ServerIssue.endpointNotFound,
           endpoint: endpoint,
-          message: 'The server responded, but the /models endpoint was not found.',
-          hint: 'For llama.cpp, start llama-server with its OpenAI-compatible '
+          message:
+              'The server responded, but the /models endpoint was not found.',
+          hint:
+              'For llama.cpp, start llama-server with its OpenAI-compatible '
               'API and use the base URL ending in /v1, not /v1/models.',
         );
       }
@@ -143,7 +147,8 @@ class ChatApi {
         issue: ServerIssue.httpError,
         endpoint: endpoint,
         message: 'The server responded with HTTP ${response.statusCode}.',
-        hint: 'Check the server log for the HTTP error and confirm that the '
+        hint:
+            'Check the server log for the HTTP error and confirm that the '
             'configured URL points to the API server.',
       );
     } on TimeoutException {
@@ -151,26 +156,31 @@ class ChatApi {
         health: ServerHealth.offline,
         issue: ServerIssue.timeout,
         endpoint: endpoint,
-        message: 'The server did not respond within ${timeout.inSeconds} seconds.',
-        hint: 'Confirm the server is running and listening on the configured '
+        message:
+            'The server did not respond within ${timeout.inSeconds} seconds.',
+        hint:
+            'Confirm the server is running and listening on the configured '
             'port. Check that the phone and host can reach each other.',
       );
     } on SocketException catch (error) {
-      final refused = error.osError?.errorCode == 111 ||
+      final refused =
+          error.osError?.errorCode == 111 ||
           error.osError?.errorCode == 61 ||
           error.osError?.errorCode == 10061;
       return ServerStatus(
         health: ServerHealth.offline,
-        issue: refused ? ServerIssue.connectionRefused : ServerIssue.unreachable,
+        issue: refused
+            ? ServerIssue.connectionRefused
+            : ServerIssue.unreachable,
         endpoint: endpoint,
         message: refused
             ? 'The connection was refused. Nothing is accepting connections at this address.'
             : 'Could not reach the server. ${error.osError?.message ?? error.message}',
         hint: refused
             ? 'Start llama-server in Termux and confirm its port. If it runs on '
-                'another device, use that device’s LAN IP instead of 127.0.0.1.'
+                  'another device, use that device’s LAN IP instead of 127.0.0.1.'
             : 'Check the host address, port, Wi-Fi connection and firewall. '
-                'On Android, 127.0.0.1 refers to the phone itself.',
+                  'On Android, 127.0.0.1 refers to the phone itself.',
       );
     } on HttpException catch (error) {
       return ServerStatus(
@@ -225,8 +235,12 @@ class ChatApi {
       final payload = <String, dynamic>{
         'stream': true,
         'temperature': settings.temperature,
-        if (settings.maxOutputTokens != null && settings.maxOutputTokens! >= 1 && settings.maxOutputTokens! <= 32768) 'max_tokens': settings.maxOutputTokens,
-        if (settings.topP != null && settings.topP! >= 0 && settings.topP! <= 1) 'top_p': settings.topP,
+        if (settings.maxOutputTokens != null &&
+            settings.maxOutputTokens! >= 1 &&
+            settings.maxOutputTokens! <= 32768)
+          'max_tokens': settings.maxOutputTokens,
+        if (settings.topP != null && settings.topP! >= 0 && settings.topP! <= 1)
+          'top_p': settings.topP,
         if (settings.model.trim().isNotEmpty) 'model': settings.model.trim(),
         'messages': [
           if (settings.systemPrompt.trim().isNotEmpty)

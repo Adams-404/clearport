@@ -29,7 +29,9 @@ class ConversationTransfer {
       throw const FormatException('The backup must be a JSON object.');
     }
     if (decoded['format'] != format) {
-      throw const FormatException('This is not a Clearport conversation backup.');
+      throw const FormatException(
+        'This is not a Clearport conversation backup.',
+      );
     }
     if (decoded['version'] != version) {
       throw FormatException(
@@ -54,7 +56,9 @@ class ConversationTransfer {
       final updatedAt = json['updatedAt'];
       final messages = json['messages'];
       if (id is! String || id.trim().isEmpty || !ids.add(id)) {
-        throw const FormatException('Conversation IDs must be unique and non-empty.');
+        throw const FormatException(
+          'Conversation IDs must be unique and non-empty.',
+        );
       }
       if (title is! String ||
           createdAt is! String ||

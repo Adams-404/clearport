@@ -6,9 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   Widget harness(String source) => MaterialApp(
     theme: AppTheme.dark(),
-    home: Scaffold(
-      body: SingleChildScrollView(child: MarkdownText(source)),
-    ),
+    home: Scaffold(body: SingleChildScrollView(child: MarkdownText(source))),
   );
 
   testWidgets('renders headings, lists, blockquotes and links', (tester) async {
@@ -59,7 +57,10 @@ void main() {}
 
     expect(find.text('dart'), findsOneWidget);
     expect(find.text('void main() {}'), findsOneWidget);
-    expect(find.widgetWithText(SelectableText, 'void main() {}'), findsOneWidget);
+    expect(
+      find.widgetWithText(SelectableText, 'void main() {}'),
+      findsOneWidget,
+    );
     expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
   });
 

@@ -382,12 +382,10 @@ class AppTheme {
         backgroundColor: palette.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(20),
           side: BorderSide(
-            color: palette.spooky
-                ? palette.accent.withValues(alpha: 0.45)
-                : palette.border,
-            width: 1.2,
+            color: palette.border.withValues(alpha: 0.5),
+            width: 1,
           ),
         ),
       ),

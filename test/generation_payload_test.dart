@@ -13,7 +13,10 @@ void main() {
     server.listen((request) async {
       final body = await utf8.decoder.bind(request).join();
       received.complete(jsonDecode(body) as Map<String, dynamic>);
-      request.response.headers.contentType = ContentType('text', 'event-stream');
+      request.response.headers.contentType = ContentType(
+        'text',
+        'event-stream',
+      );
       request.response.write('data: [DONE]\n\n');
       await request.response.close();
     });
@@ -40,7 +43,10 @@ void main() {
     server.listen((request) async {
       final body = await utf8.decoder.bind(request).join();
       received.complete(jsonDecode(body) as Map<String, dynamic>);
-      request.response.headers.contentType = ContentType('text', 'event-stream');
+      request.response.headers.contentType = ContentType(
+        'text',
+        'event-stream',
+      );
       request.response.write('data: [DONE]\n\n');
       await request.response.close();
     });

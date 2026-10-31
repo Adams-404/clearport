@@ -38,7 +38,9 @@ class MarkdownText extends StatelessWidget {
     for (var i = 0; i < blocks.length; i++) {
       final block = blocks[i];
       if (block is _CodeBlock) {
-        children.add(_CodeBlockView(code: block.code, language: block.language));
+        children.add(
+          _CodeBlockView(code: block.code, language: block.language),
+        );
       } else if (block is _MarkdownBlock && block.source.trim().isNotEmpty) {
         children.add(
           Padding(
@@ -73,10 +75,7 @@ class MarkdownText extends StatelessWidget {
 
     if (trailing != null) {
       children.add(
-        Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: trailing!,
-        ),
+        Padding(padding: const EdgeInsets.only(top: 2), child: trailing!),
       );
     }
     if (children.isEmpty && trailing != null) {

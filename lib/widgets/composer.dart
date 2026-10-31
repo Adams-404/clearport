@@ -149,22 +149,22 @@ class _SendButton extends StatelessWidget {
             enabled: active,
             label: isStreaming ? 'Stop generating' : 'Send message',
             child: Center(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 160),
-              transitionBuilder: (child, animation) => ScaleTransition(
-                scale: animation,
-                child: FadeTransition(opacity: animation, child: child),
-              ),
-              child: Icon(
-                isStreaming ? Icons.stop_rounded : Icons.arrow_upward_rounded,
-                key: ValueKey(isStreaming),
-                size: isStreaming ? 20 : 22,
-                color: foreground,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 160),
+                transitionBuilder: (child, animation) => ScaleTransition(
+                  scale: animation,
+                  child: FadeTransition(opacity: animation, child: child),
+                ),
+                child: Icon(
+                  isStreaming ? Icons.stop_rounded : Icons.arrow_upward_rounded,
+                  key: ValueKey(isStreaming),
+                  size: isStreaming ? 20 : 22,
+                  color: foreground,
+                ),
               ),
             ),
           ),
         ),
-      ),
       ),
     );
   }

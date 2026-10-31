@@ -61,9 +61,13 @@ void main() {
     test('reports a loaded model as online', () async {
       final status = await probe((request) async {
         request.response.headers.contentType = ContentType.json;
-        request.response.write(jsonEncode({
-          'data': [{'id': 'qwen2.5-1.5b'}],
-        }));
+        request.response.write(
+          jsonEncode({
+            'data': [
+              {'id': 'qwen2.5-1.5b'},
+            ],
+          }),
+        );
         await request.response.close();
       });
 

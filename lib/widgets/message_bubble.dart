@@ -58,7 +58,11 @@ class _MessageBubbleState extends State<MessageBubble>
         child: Padding(
           padding: const EdgeInsets.only(bottom: 18),
           child: widget.message.isUser
-              ? _UserMessage(message: widget.message, showActions: widget.showActions, onEdit: widget.onEdit)
+              ? _UserMessage(
+                  message: widget.message,
+                  showActions: widget.showActions,
+                  onEdit: widget.onEdit,
+                )
               : _AssistantMessage(
                   message: widget.message,
                   isStreaming: widget.isStreaming,
@@ -72,7 +76,11 @@ class _MessageBubbleState extends State<MessageBubble>
 }
 
 class _UserMessage extends StatelessWidget {
-  const _UserMessage({required this.message, required this.showActions, this.onEdit});
+  const _UserMessage({
+    required this.message,
+    required this.showActions,
+    this.onEdit,
+  });
 
   final ChatMessage message;
   final bool showActions;
@@ -87,31 +95,31 @@ class _UserMessage extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Align(
-      alignment: Alignment.centerRight,
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.82,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 11),
-        decoration: BoxDecoration(
-          color: palette.accentSoft,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(18),
-            topRight: Radius.circular(18),
-            bottomLeft: Radius.circular(18),
-            bottomRight: Radius.circular(6),
+          alignment: Alignment.centerRight,
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.sizeOf(context).width * 0.82,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 11),
+            decoration: BoxDecoration(
+              color: palette.accentSoft,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
+                bottomLeft: Radius.circular(18),
+                bottomRight: Radius.circular(6),
+              ),
+              border: Border.all(color: palette.accent.withValues(alpha: 0.28)),
+            ),
+            child: SelectableText(
+              message.content,
+              style: theme.textTheme.bodyMedium!.copyWith(
+                fontSize: 15.2,
+                height: 1.45,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
           ),
-          border: Border.all(color: palette.accent.withValues(alpha: 0.28)),
-        ),
-        child: SelectableText(
-          message.content,
-          style: theme.textTheme.bodyMedium!.copyWith(
-            fontSize: 15.2,
-            height: 1.45,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-      ),
         ),
         if (showActions)
           Row(
@@ -119,7 +127,11 @@ class _UserMessage extends StatelessWidget {
             children: [
               CopyButton(text: message.content, size: 15),
               if (onEdit != null)
-                _ActionIcon(icon: Icons.edit_rounded, tooltip: 'Edit', onTap: () => onEdit!(message.content)),
+                _ActionIcon(
+                  icon: Icons.edit_rounded,
+                  tooltip: 'Edit',
+                  onTap: () => onEdit!(message.content),
+                ),
             ],
           ),
       ],

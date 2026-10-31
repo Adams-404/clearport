@@ -284,10 +284,11 @@ Then use `http://127.0.0.1:8080/v1` directly.
 
 ## Automatic builds
 
-`.github/workflows/build-apk.yml` builds a release APK on every push to `main` and uploads it as the **clearport-apk** artifact (Actions → run → Artifacts). Pushing a `v*` tag also attaches `clearport.apk` to a GitHub Release, which is how the phone-only install works.
+- **On every push to `main`**: `.github/workflows/build-apk.yml` automatically builds a release APK and uploads it as the **clearport-apk** artifact (Actions → run → Artifacts).
+- **On GitHub Releases**: Pushing a `v*` tag (or pushing to `main` with `[release]` in the commit message) triggers `.github/workflows/android-release.yml`, which runs checks, builds and verifies `clearport-android-universal.apk` with `apksigner`, and attaches it to a GitHub Release:
 
 ```bash
-git tag v1.0.0 && git push origin v1.0.0
+git tag v1.0.4 && git push origin v1.0.4
 ```
 
 ## License

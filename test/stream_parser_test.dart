@@ -30,7 +30,10 @@ void main() {
     test('joins multiple data fields into one SSE event', () {
       final parser = StreamParser();
       expect(
-        parser.add('data: {"choices":[\n' 'data: {"delta":{"content":"joined"}}]}\n\n'),
+        parser.add(
+          'data: {"choices":[\n'
+          'data: {"delta":{"content":"joined"}}]}\n\n',
+        ),
         ['joined'],
       );
     });
@@ -46,7 +49,9 @@ void main() {
     test('ignores comments and SSE metadata fields', () {
       final parser = StreamParser();
       expect(
-        parser.add(': keepalive\nevent: message\nid: 7\nretry: 1000\ndata: ok\n\n'),
+        parser.add(
+          ': keepalive\nevent: message\nid: 7\nretry: 1000\ndata: ok\n\n',
+        ),
         ['ok'],
       );
     });

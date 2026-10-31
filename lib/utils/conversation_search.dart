@@ -12,7 +12,6 @@ List<Conversation> searchConversations(
     return conversation.messages.any(
       (message) => message.content.toLowerCase().contains(needle),
     );
-  }).toList()
-    ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+  }).toList()..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
   return matches;
 }

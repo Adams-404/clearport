@@ -93,23 +93,27 @@ void main() {
     expect(palette.mark, ThemeMarkKind.terminal);
   });
 
-  test('midwinter is deep arctic blue with glacial ice accent and snowflake mark', () {
-    final palette = AppPalette.forChoice(AppThemeChoice.christmas);
-    expect(palette.bg, const Color(0xFF070D14));
-    expect(palette.accent, const Color(0xFF6AE4FF));
-    expect(palette.mark, ThemeMarkKind.snowflake);
-  });
+  test(
+    'midwinter is deep arctic blue with glacial ice accent and snowflake mark',
+    () {
+      final palette = AppPalette.forChoice(AppThemeChoice.christmas);
+      expect(palette.bg, const Color(0xFF070D14));
+      expect(palette.accent, const Color(0xFF6AE4FF));
+      expect(palette.mark, ThemeMarkKind.snowflake);
+    },
+  );
 
-  testWidgets('default theme mark renders the brand logo asset', (tester) async {
+  testWidgets('default theme mark renders the brand logo asset', (
+    tester,
+  ) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: ThemeMark(),
-        ),
-      ),
+      const MaterialApp(home: Scaffold(body: ThemeMark())),
     );
     final image = tester.widget<Image>(find.byType(Image));
-    expect((image.image as AssetImage).assetName, 'assets/branding/clearport-logo.png');
+    expect(
+      (image.image as AssetImage).assetName,
+      'assets/branding/clearport-logo.png',
+    );
   });
 
   testWidgets('haunted empty state paints webs and speaks spooky', (
@@ -164,7 +168,9 @@ void main() {
     expect(webPainters, isEmpty);
   });
 
-  testWidgets('haunted history sheet paints spider webs and follows theme', (tester) async {
+  testWidgets('history sheet renders liquid glass and follows haunted theme', (
+    tester,
+  ) async {
     final state = AppState();
     await state.load();
     await tester.pumpWidget(

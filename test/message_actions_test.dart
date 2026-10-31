@@ -9,8 +9,9 @@ class _RecordingApi extends ChatApi {
   final List<List<ChatMessage>> requests;
 
   @override
-  Future<ServerStatus> checkStatus({Duration timeout = const Duration(seconds: 5)}) async =>
-      const ServerStatus(health: ServerHealth.online);
+  Future<ServerStatus> checkStatus({
+    Duration timeout = const Duration(seconds: 5),
+  }) async => const ServerStatus(health: ServerHealth.online);
 
   @override
   Future<void> streamChat({
@@ -25,24 +26,29 @@ class _RecordingApi extends ChatApi {
 }
 
 void main() {
-  test('editing a user message removes the invalidated tail and regenerates', () async {
-    final requests = <List<ChatMessage>>[];
-    final state = AppState(apiFactory: (_) => _RecordingApi(requests));
-    await state.load();
+  test(
+    'editing a user message removes the invalidated tail and regenerates',
+    () async {
+      final requests = <List<ChatMessage>>[];
+      final state = AppState(apiFactory: (_) => _RecordingApi(requests));
+      await state.load();
 
-    await state.send('first prompt');
-    await state.send('second prompt');
-    final conversation = state.activeConversation!;
-    final firstUser = conversation.messages.first;
+      await state.send('first prompt');
+      await state.send('second prompt');
+      final conversation = state.activeConversation!;
+      final firstUser = conversation.messages.first;
 
-    await state.editMessage(firstUser.id, 'edited prompt');
+      await state.editMessage(firstUser.id, 'edited prompt');
 
-    expect(conversation.messages.map((m) => m.content).toList(),
-        ['edited prompt', 'fresh reply']);
-    expect(requests.last.map((m) => m.content).toList(), ['edited prompt']);
-    expect(conversation.messages.first.isUser, isTrue);
-    state.dispose();
-  });
+      expect(conversation.messages.map((m) => m.content).toList(), [
+        'edited prompt',
+        'fresh reply',
+      ]);
+      expect(requests.last.map((m) => m.content).toList(), ['edited prompt']);
+      expect(conversation.messages.first.isUser, isTrue);
+      state.dispose();
+    },
+  );
 
   test('editing rejects missing or assistant message IDs', () async {
     final state = AppState(apiFactory: (_) => _RecordingApi([]));
@@ -68,9 +74,17 @@ void main() {
 
     await state.regenerate();
 
-    expect(conversation.messages.map((m) => m.content).toList(),
-        ['first', 'fresh reply', 'second', 'fresh reply']);
-    expect(requests.last.map((m) => m.content).toList(), ['first', 'fresh reply', 'second']);
+    expect(conversation.messages.map((m) => m.content).toList(), [
+      'first',
+      'fresh reply',
+      'second',
+      'fresh reply',
+    ]);
+    expect(requests.last.map((m) => m.content).toList(), [
+      'first',
+      'fresh reply',
+      'second',
+    ]);
     state.dispose();
   });
 }
